@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<RootNamespace>MyEnglishWord.Core</RootNamespace>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<Platforms>x86;x64;arm64;AnyCPU</Platforms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" '$(Platform)' == 'x64' ">
+		<Content Include="runtimes\win-x64\native\piper.dll" CopyToOutputDirectory="PreserveNewest" TargetPath="%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.13" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	</ItemGroup>
+</Project>

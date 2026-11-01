@@ -1,0 +1,117 @@
+﻿<Page
+    x:Class="MyEnglishWord.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="using:MyEnglishWord.Behaviors"
+    xmlns:ctk="using:CommunityToolkit.WinUI.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helper="using:MyEnglishWord.Helpers"
+    xmlns:localStyle="using:MyEnglishWord.Styles"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    behaviors:NavigationViewHeaderBehavior.HeaderMode="Never"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <ctk:CollectionVisibilityConverter x:Key="CollectionVisibilityConverter" />
+                    <ContentDialog x:Key="MyDlgTemplate" CloseButtonText="">
+                        <Grid />
+                    </ContentDialog>
+                </ResourceDictionary>
+                <localStyle:MainPageStyle />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid x:Name="ContentArea">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,10"
+            Orientation="Vertical"
+            Spacing="5">
+            <AutoSuggestBox
+                Width="200"
+                HorizontalAlignment="Left"
+                PlaceholderText="请输入搜索单词"
+                QueryIcon="Find"
+                QuerySubmitted="AutoSuggestBox_QuerySubmitted" />
+            <ProgressBar
+                x:Name="Progress"
+                Width="200"
+                HorizontalAlignment="Left"
+                IsIndeterminate="True"
+                ShowError="False"
+                ShowPaused="false"
+                Visibility="Collapsed" />
+        </StackPanel>
+        <ScrollView Grid.Row="1">
+            <StackPanel Orientation="Vertical" Spacing="20">
+
+                <Border
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderThickness="2"
+                    CornerRadius="{ThemeResource OverlayCornerRadius}"
+                    Loaded="ShadowRect_Loaded"
+                    Translation="0,0,25">
+                    <Border.Shadow>
+                        <ThemeShadow x:Name="shadow" />
+                    </Border.Shadow>
+
+                    <ContentPresenter Content="{x:Bind ViewModel.CurrentWord, Mode=OneWay}" ContentTemplate="{StaticResource WordDetailTemplate}" />
+
+                </Border>
+                <Border>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="推荐" Visibility="{x:Bind ViewModel.Items, Mode=OneWay, Converter={StaticResource CollectionVisibilityConverter}}" />
+                        <GridView
+                            x:Name="ItemGridView"
+                            Padding="24,16,24,36"
+                            IsItemClickEnabled="True"
+                            IsSwipeEnabled="False"
+                            ItemClick="OnItemGridViewItemClick"
+                            ItemContainerStyle="{StaticResource IndentedGridViewItemStyle}"
+                            ItemTemplate="{StaticResource ControlItemTemplate}"
+                            ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
+                            SelectionMode="None">
+                            <GridView.Resources>
+                                <CornerRadius x:Key="GridViewItemCornerRadius">8</CornerRadius>
+                            </GridView.Resources>
+                        </GridView>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollView>
+
+
+        <Popup
+            x:Name="StandardPopup"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            IsLightDismissEnabled="True">
+            <Popup.ChildTransitions>
+                <TransitionCollection>
+                    <PaneThemeTransition Edge="Top" />
+                </TransitionCollection>
+            </Popup.ChildTransitions>
+            <Border
+                x:Name="StandardPopupContent"
+                Padding="20"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource OverlayCornerRadius}">
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+
+                <ContentPresenter Content="{x:Bind ViewModel.LikeWordDetail, Mode=OneWay}" ContentTemplate="{StaticResource WordDetailTemplate}" />
+            </Border>
+        </Popup>
+    </Grid>
+</Page>

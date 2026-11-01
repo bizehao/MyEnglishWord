@@ -1,0 +1,8 @@
+﻿namespace MyEnglishWord.Behaviors;
+
+public enum NavigationViewHeaderMode
+{
+    Always,
+    Never,
+    Minimal
+}

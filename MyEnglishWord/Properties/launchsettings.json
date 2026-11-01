@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "MyEnglishWord (Package)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
+    },
+    "MyEnglishWord (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
