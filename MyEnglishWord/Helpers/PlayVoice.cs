@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Text;
-using KokoroSharp;
 using Microsoft.UI.Xaml.Shapes;
 using MyEnglishWord.Core.Helpers;
 using Windows.Media.Core;

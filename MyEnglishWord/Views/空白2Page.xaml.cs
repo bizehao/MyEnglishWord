@@ -3,14 +3,11 @@ using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml.Controls;
 using MyEnglishWord.Core.Helpers;
 using MyEnglishWord.ViewModels;
-using NAudio.MediaFoundation;
 using Windows.Foundation;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
 using WinRT;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static CommunityToolkit.Mvvm.ComponentModel.__Internals.__TaskExtensions.TaskAwaitableWithoutEndValidation;
 
 namespace MyEnglishWord.Views;
 

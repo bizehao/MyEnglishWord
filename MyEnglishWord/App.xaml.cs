@@ -14,6 +14,7 @@ using MyEnglishWord.Models;
 using MyEnglishWord.Services;
 using MyEnglishWord.ViewModels;
 using MyEnglishWord.Views;
+using Windows.Storage;
 using Windows.UI;
 
 namespace MyEnglishWord;
@@ -71,8 +72,11 @@ public partial class App : Application
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
 
-            services.AddDbContext<EnglishWordContext>(options => {
-                options.UseSqlite($"Data Source={"C:\\Users\\bzh\\Downloads\\ECDICT-master\\stardict\\english_words_lite.sqlite"}");
+            
+
+            services.AddDbContext<EnglishWordContext>(async options => {
+                var db = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/english_words_lite.db"));
+                options.UseSqlite($"Data Source={db.Path}");
             });
 
             // Core Services
