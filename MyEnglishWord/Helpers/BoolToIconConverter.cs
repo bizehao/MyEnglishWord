@@ -2,26 +2,35 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Data;
 
 namespace MyEnglishWord.Helpers;
 
-public class SpeechStatusConverter
+public class BoolToIconConverter : IValueConverter
 {
-    public SpeechStatusConverter()
+    public BoolToIconConverter()
     {
     }
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is bool Speeching)
+        if (parameter is string param)
         {
-            if (Speeching)
+            // Handle the parameter if needed
+            var icons = param.Split('|');
+            if (icons.Length == 2)
             {
-                return "\uE7C8";
-            }
-            else
-            {
-                return "\uE720";
+                if (value is bool speeching)
+                {
+                    if (speeching)
+                    {
+                        return icons[0];
+                    }
+                    else
+                    {
+                        return icons[1];
+                    }
+                }
             }
         }
 

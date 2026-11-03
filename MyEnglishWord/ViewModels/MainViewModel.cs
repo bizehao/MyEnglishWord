@@ -3,7 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using LevelDB;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.UI.Xaml.Controls;
+using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Core.Models;
 using MyEnglishWord.Helpers;
 using MyEnglishWord.Models;
@@ -37,17 +40,32 @@ public partial class MainViewModel : ObservableRecipient
     }
 
     [ObservableProperty]
-    public partial String SpeechIcon
-    {
-        get;
-        set;
-    } = "\uE720"; //"\uE7C8" "\uE720"
-
-    public bool isSpeeching
+    public partial bool IsSpeeching
     {
         get;
         set;
     } = false;
+
+    [ObservableProperty]
+    public partial bool SpeekInfoBarOpen
+    {
+        get;
+        set;
+    } = false;
+
+    [ObservableProperty]
+    public partial string SpeekInfoBarMsg
+    {
+        get;
+        set;
+    } = string.Empty;
+
+    [ObservableProperty]
+    public partial InfoBarSeverity SpeekInfoBarSeverity
+    {
+        get;
+        set;
+    } = InfoBarSeverity.Informational;
 
     public MainViewModel()
     {
@@ -99,8 +117,14 @@ public partial class MainViewModel : ObservableRecipient
     private async void HandleReadWord(WordModel word)
     {
         WeakReferenceMessenger.Default.Send(new ShowSpeechRecognizer(word));
+    }
 
-        
+    [RelayCommand]
+    private async void HandleAddDict(WordModel word)
+    {
+        var db = App.GetService<MyWordRecordContext>();
+        await db.Add(word.Word);
+        word.InDictionary = true;
     }
 
     protected override void OnActivated()
@@ -111,14 +135,8 @@ public partial class MainViewModel : ObservableRecipient
     {
         base.OnDeactivated();
 
-        SpeechIcon = "\uE720";
-        isSpeeching = false;
+        IsSpeeching = false;
+        SpeekInfoBarOpen = false;
     }
-
-
-
-    //OnActivated();
-
-    //OnDeactivated();
 
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "MyEnglishWord (Package)": {
       "commandName": "MsixPackage",
-      "nativeDebugging": false
+      "nativeDebugging": true
     },
     "MyEnglishWord (Unpackaged)": {
       "commandName": "Project"

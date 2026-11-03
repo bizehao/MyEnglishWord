@@ -117,11 +117,11 @@ public sealed partial class WordModel : ObservableObject
     //string? Audio
 
     [ObservableProperty]
-    public partial string? ReadWord
+    public partial bool InDictionary
     {
         get;
         set;
-    }
-    
+    } = false;
+
 }
 

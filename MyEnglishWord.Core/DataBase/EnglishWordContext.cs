@@ -23,7 +23,6 @@ public class EnglishWordContext : DbContext
     public EnglishWordContext(DbContextOptions<EnglishWordContext> options)
         : base(options)
     {
-
     }
 
     //查询单词
@@ -49,8 +48,6 @@ public class EnglishWordContext : DbContext
                    .Where(x => EF.Functions.Like(x.Sw, $"{nword}%") && x.Sw != nword)
                    .OrderBy(x => EF.Functions.Collate(x.Sw, "NOCASE"));
         }
-
-        var xx = query.ToQueryString();
 
         return query.Take(limit)
             .ToListAsync();

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using LevelDB;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Dispatching;
@@ -45,7 +46,10 @@ public partial class App : Application
 
     public static WindowEx MainWindow { get; } = new MainWindow();
 
-    public static UIElement? AppTitlebar { get; set; }
+    public static UIElement? AppTitlebar
+    {
+        get; set;
+    }
 
     public App()
     {
@@ -61,7 +65,9 @@ public partial class App : Application
 
             // Other Activation Handlers
             services.AddSingleton<PlayVoice>();
-
+            var options = new Options { CreateIfMissing = true };
+            var db = new DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word");
+            services.AddSingleton<DB>(db);
 
             // Services
             services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
@@ -72,11 +78,17 @@ public partial class App : Application
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
 
-            
 
-            services.AddDbContext<EnglishWordContext>(async options => {
+            services.AddDbContext<EnglishWordContext>(async options =>
+            {
                 var db = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/english_words_lite.db"));
                 options.UseSqlite($"Data Source={db.Path}");
+            });
+
+            services.AddDbContext<MyWordRecordContext>(async options =>
+            {
+                var db = "C:/Users/bzh/Documents/MyDB/my_word_record.db";
+                options.UseSqlite($"Data Source={db}");
             });
 
             // Core Services
@@ -123,12 +135,14 @@ public partial class App : Application
 
         await App.GetService<IActivationService>().ActivateAsync(args);
         await App.GetService<SettingsViewModel>().InitAsync();
-        
+
+        var myWordRecordContext = App.GetService<MyWordRecordContext>();
+        await myWordRecordContext.Database.EnsureCreatedAsync();
 
         //触发模型初始化 无效
-        var dbContext = App.GetService<EnglishWordContext>();
-        await dbContext.Words.AnyAsync();
-        //await dbContext.Database.OpenConnectionAsync();
-        //await dbContext.Database.CloseConnectionAsync();
+        //var dbContext = App.GetService<EnglishWordContext>();
+        //await dbContext.Words.AnyAsync();
     }
+
+
 }

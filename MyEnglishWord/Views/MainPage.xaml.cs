@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -10,11 +11,13 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using MyEnglishWord.Core.DataBase;
+using MyEnglishWord.Helpers;
 using MyEnglishWord.Models;
 using MyEnglishWord.ViewModels;
 using Windows.Devices.Enumeration;
 using Windows.Foundation;
 using Windows.Globalization;
+using Windows.Media.Capture;
 using Windows.Media.SpeechRecognition;
 using WinRT;
 
@@ -24,14 +27,21 @@ public sealed partial class MainPage : Page
     , IRecipient<ShowWordDetailDialog>
     , IRecipient<ShowSpeechRecognizer>
 {
+    //private delegate void PageClosed();
+
     public MainViewModel ViewModel
     {
         get;
     }
 
-    private DispatcherQueueTimer _timerQueue;
+    private readonly DispatcherQueueTimer _timerQueueOfProgress;
+    private readonly DispatcherQueueTimer _timerQueueOfInfoBar;
 
-    private readonly SpeechRecognizer _speechRecognizer;
+    private bool _isRecognitionTaskRunning = false;
+
+    private Func<Task>? _stopRecognition;
+
+
 
     public MainPage()
     {
@@ -39,13 +49,8 @@ public sealed partial class MainPage : Page
         DataContext = ViewModel;
         InitializeComponent();
 
-        _timerQueue = DispatcherQueue.CreateTimer();
-
-
-        var language = new Language("en-US");
-        _speechRecognizer = new SpeechRecognizer(language); // 默认使用系统语音语言
-        _speechRecognizer.UIOptions.AudiblePrompt = "请说话";
-        _speechRecognizer.UIOptions.ShowConfirmation = true;
+        _timerQueueOfProgress = DispatcherQueue.CreateTimer();
+        _timerQueueOfInfoBar = DispatcherQueue.CreateTimer();
 
     }
 
@@ -69,14 +74,17 @@ public sealed partial class MainPage : Page
         ViewModel.IsActive = true; // 激活，自动注册 Messenger IRecipient
     }
 
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    protected async override void OnNavigatedFrom(NavigationEventArgs e)
     {
         WeakReferenceMessenger.Default.UnregisterAll(this);
         ViewModel.IsActive = false; // 取消激活！触发 OnDeactivated，自动取消 messenger 订阅
+
+        if (_stopRecognition is not null)
+        {
+            await _stopRecognition();
+        }
+
         base.OnNavigatedFrom(e);
-
-        _speechRecognizer.Dispose();
-
     }
 
     private async void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
@@ -84,15 +92,20 @@ public sealed partial class MainPage : Page
         if (sender.Text is { Length: > 0 } text)
         {
             //查询单词
-            _timerQueue.Stop();
+            _timerQueueOfProgress.Stop();
             Progress.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
             Progress.ShowPaused = false;
             Progress.ShowError = false;
             var dbService = App.GetService<EnglishWordContext>();
             var result = await dbService.QueryWordAsync(text);
+
             if (result is not null)
             {
-                ViewModel.CurrentWord = ViewModel.MakeWordModel(result);
+                var myWordRecordContext = App.GetService<MyWordRecordContext>();
+                var hasWord = await myWordRecordContext.Has(text);
+                var wd = ViewModel.MakeWordModel(result);
+                wd.InDictionary = hasWord;
+                ViewModel.CurrentWord = wd;
                 Progress.ShowError = false;
             }
             else
@@ -103,7 +116,7 @@ public sealed partial class MainPage : Page
             }
             Progress.ShowPaused = true;
 
-            _timerQueue.Debounce(() =>
+            _timerQueueOfProgress.Debounce(() =>
             {
                 Progress.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
             }, TimeSpan.FromSeconds(5));
@@ -150,27 +163,106 @@ public sealed partial class MainPage : Page
 
     public async void Receive(ShowSpeechRecognizer message)
     {
-        ViewModel.SpeechIcon = "\uE7C8";
-        ViewModel.isSpeeching = true;
-
-        _speechRecognizer.UIOptions.ExampleText = message.word.Word;
-        _speechRecognizer.Constraints.Clear();
-        _speechRecognizer.Constraints.Add(new SpeechRecognitionListConstraint([message.word.Word])); // 词表约束，纯本地
-        SpeechRecognitionCompilationResult result1 = await _speechRecognizer.CompileConstraintsAsync();
-
-        if (result1.Status != SpeechRecognitionResultStatus.Success)
+        //todo: 保持页面单例
+        if (_isRecognitionTaskRunning)
         {
-            // 处理语法编译失败（如语言包未安装）
             return;
         }
-        var result2 = await _speechRecognizer.RecognizeWithUIAsync();
-        if (result2.Status == SpeechRecognitionResultStatus.Success)
-        {
-            var text = result2.Text;
-        }
-        //todo  对 错
 
-        ViewModel.SpeechIcon = "\uE720";
-        ViewModel.isSpeeching = false;
+        _isRecognitionTaskRunning = true;
+
+        //todo 限制只能一个识别
+        if (ViewModel.IsSpeeching)
+        {
+            ViewModel.IsSpeeching = false;
+            if (_stopRecognition is not null)
+            {
+                await _stopRecognition();
+            }
+        }
+        else
+        {
+
+            var hasPer = await AudioCapturePermissions.RequestMicrophonePermission();
+            if (!hasPer)
+            {
+                return;
+            }
+
+            ViewModel.IsSpeeching = true;
+
+            var language = new Language("en-US");
+            using var speechRecognizer = new SpeechRecognizer(language);
+            speechRecognizer.UIOptions.AudiblePrompt = "please speak";
+            speechRecognizer.UIOptions.ShowConfirmation = true;
+            speechRecognizer.UIOptions.ExampleText = message.word.Word;
+            speechRecognizer.Constraints.Add(new SpeechRecognitionListConstraint([message.word.Word])); // 词表约束，纯本地
+
+            SpeechRecognitionCompilationResult compileResult = await speechRecognizer.CompileConstraintsAsync();
+            if (compileResult.Status != SpeechRecognitionResultStatus.Success)
+            {
+                SpeekInfoBarOP("CompileConstraints Error, 请检查系统语音包是否安装", InfoBarSeverity.Error);
+                return;
+            }
+
+            var stopRecognize = async () =>
+            {
+                await speechRecognizer.StopRecognitionAsync();
+            };
+
+            _stopRecognition = stopRecognize;
+
+            var textResult = await speechRecognizer.RecognizeAsync();
+
+            _stopRecognition = null;
+
+            if (!ViewModel.IsSpeeching)
+            {
+                return;
+            }
+
+            if (textResult.Status == SpeechRecognitionResultStatus.Success)
+            {
+                var text = textResult.Text;
+                if (text == message.word.Word)
+                {
+                    SpeekInfoBarOP("读音正确", InfoBarSeverity.Success);
+                }
+                else
+                {
+                    SpeekInfoBarOP("读音错误", InfoBarSeverity.Error);
+                }
+            }
+            else
+            {
+                //todo:显示错
+                SpeekInfoBarOP("录音发生错误", InfoBarSeverity.Error);
+            }
+            ViewModel.IsSpeeching = false;
+        }
+
+        _isRecognitionTaskRunning = false;
+    }
+
+    private void SpeekInfoBarOP(string msg, InfoBarSeverity infoBarSeverity, bool open = true)
+    {
+        _timerQueueOfInfoBar.Stop();
+
+        if (open)
+        {
+            ViewModel.SpeekInfoBarOpen = true;
+            ViewModel.SpeekInfoBarMsg = msg;
+            ViewModel.SpeekInfoBarSeverity = infoBarSeverity;
+
+            _timerQueueOfInfoBar.Debounce(() =>
+            {
+                ViewModel.SpeekInfoBarOpen = false;
+            }, TimeSpan.FromSeconds(5));
+        }
+        else
+        {
+            ViewModel.SpeekInfoBarOpen = false;
+        }
+        
     }
 }

@@ -15,9 +15,9 @@
         <Setter Property="Margin" Value="12,0,0,12" />
     </Style>
 
+    <ctk:BoolNegationConverter x:Key="BoolNegationConverter" />
     <ctk:StringVisibilityConverter x:Key="StringVisibilityConverter" />
-    <converter:SpeechStatusConverter x:Key="SpeechStatusConverter" />
-
+    <helper:BoolToIconConverter x:Key="BoolToIconConverter" />
 
     <DataTemplate x:Key="WordDetailTemplate" x:DataType="models:WordModel">
         <StackPanel
@@ -48,14 +48,27 @@
                     <FontIcon Glyph="&#xE994;" />
                 </Button>
                 <Button
+                    x:Name="Speech"
                     Padding="5"
                     VerticalAlignment="Center"
                     Command="{Binding ElementName=ItemGridView, Path=DataContext.HandleReadWordCommand, Mode=OneWay}"
                     CommandParameter="{Binding}"
                     Visibility="{x:Bind Word, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <FontIcon Glyph="{Binding ElementName=ItemGridView, Path=DataContext.SpeechIcon, Mode=OneWay}" />
+                    <FontIcon Glyph="{Binding ElementName=ItemGridView, Path=DataContext.IsSpeeching, Mode=OneWay, Converter={StaticResource BoolToIconConverter}, ConverterParameter='&#xE7C8;|&#xE720;'}" />
                 </Button>
-                <TextBlock Text="{x:Bind ReadWord, Mode=OneWay}" />
+
+
+                <Button
+                    x:Name="ToRecord"
+                    Padding="5"
+                    VerticalAlignment="Center"
+                    Command="{Binding ElementName=ItemGridView, Path=DataContext.HandleAddDictCommand, Mode=OneWay}"
+                    CommandParameter="{Binding}"
+                    IsEnabled="{x:Bind InDictionary, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
+                    Visibility="{x:Bind Word, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
+                    <FontIcon Glyph="{x:Bind InDictionary, Mode=OneWay, Converter={StaticResource BoolToIconConverter}, ConverterParameter='&#xE82D;|&#xE82E;'}" />
+                </Button>
+
             </StackPanel>
 
             <!--  柯林斯星级｜牛津3000｜词频BNC/FRQ｜标签tag  -->

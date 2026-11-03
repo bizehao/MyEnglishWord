@@ -113,5 +113,18 @@
                 <ContentPresenter Content="{x:Bind ViewModel.LikeWordDetail, Mode=OneWay}" ContentTemplate="{StaticResource WordDetailTemplate}" />
             </Border>
         </Popup>
+
+        <InfoBar
+            x:Name="SpeekInfoBar"
+            Title="提示"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Width="300"
+            HorizontalAlignment="Right"
+            IsClosable="True"
+            IsIconVisible="True"
+            IsOpen="{x:Bind ViewModel.SpeekInfoBarOpen, Mode=OneWay}"
+            Message="{x:Bind ViewModel.SpeekInfoBarMsg, Mode=OneWay}"
+            Severity="{x:Bind ViewModel.SpeekInfoBarSeverity, Mode=OneWay}" />
     </Grid>
 </Page>
