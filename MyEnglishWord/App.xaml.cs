@@ -66,7 +66,7 @@ public partial class App : Application
             // Other Activation Handlers
             services.AddSingleton<PlayVoice>();
             var options = new Options { CreateIfMissing = true };
-            var db = new DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word");
+            var db = new DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word.db");
             services.AddSingleton<DB>(db);
 
             // Services
@@ -98,14 +98,14 @@ public partial class App : Application
             services.AddSingleton<SettingsViewModel>();
             services.AddTransient<SettingsPage>();
 
-            services.AddSingleton<空白2ViewModel>();
-            services.AddTransient<空白2Page>();
+            services.AddSingleton<StudyStateViewModel>();
+            services.AddTransient<StudyStatePage>();
 
-            services.AddSingleton<空白1ViewModel>();
-            services.AddTransient<空白1Page>();
+            services.AddSingleton<DBManagerViewModel>();
+            services.AddTransient<DBManagerPage>();
 
-            services.AddSingleton<空白ViewModel>();
-            services.AddTransient<空白Page>();
+            services.AddSingleton<MyWordRecordViewModel>();
+            services.AddTransient<MyWordRecordPage>();
 
             services.AddSingleton<MainViewModel>();
             services.AddTransient<MainPage>();
@@ -131,18 +131,15 @@ public partial class App : Application
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        base.OnLaunched(args);
-
-        await App.GetService<IActivationService>().ActivateAsync(args);
-        await App.GetService<SettingsViewModel>().InitAsync();
+        var englishWordContext = App.GetService<EnglishWordContext>();
+        await englishWordContext.Database.EnsureCreatedAsync();
 
         var myWordRecordContext = App.GetService<MyWordRecordContext>();
         await myWordRecordContext.Database.EnsureCreatedAsync();
 
-        //触发模型初始化 无效
-        //var dbContext = App.GetService<EnglishWordContext>();
-        //await dbContext.Words.AnyAsync();
+        base.OnLaunched(args);
+
+        await App.GetService<IActivationService>().ActivateAsync(args);
+        await App.GetService<SettingsViewModel>().InitAsync();
     }
-
-
 }

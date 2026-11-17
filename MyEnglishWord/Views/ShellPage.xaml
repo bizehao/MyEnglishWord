@@ -48,22 +48,22 @@
                 -->
                 <NavigationViewItem x:Uid="Shell_Main" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.MainViewModel">
                     <NavigationViewItem.Icon>
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe7c3;" />
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xED37;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Uid="Shell_空白" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.空白ViewModel">
+                <NavigationViewItem x:Uid="Shell_MyWordRecord" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.MyWordRecordViewModel">
                     <NavigationViewItem.Icon>
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe7c3;" />
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE70B;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Uid="Shell_空白1" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.空白1ViewModel">
+                <NavigationViewItem x:Uid="Shell_StudyState" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.StudyStateViewModel">
                     <NavigationViewItem.Icon>
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe7c3;" />
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xF120;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Uid="Shell_空白2" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.空白2ViewModel">
+                <NavigationViewItem x:Uid="Shell_DBManager" helpers:NavigationHelper.NavigateTo="MyEnglishWord.ViewModels.DBManagerViewModel">
                     <NavigationViewItem.Icon>
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe7c3;" />
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE83B;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>

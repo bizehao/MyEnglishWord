@@ -1,0 +1,136 @@
+﻿<Page
+    x:Class="MyEnglishWord.Views.MyWordRecordPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="using:MyEnglishWord.Behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ext="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:MyEnglishWord.Core.Models"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    behaviors:NavigationViewHeaderBehavior.HeaderMode="Never"
+    NavigationCacheMode="Required"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <DataTemplate x:Name="ImageOverlayTemplate" x:DataType="local:MyWordRecord">
+            <Grid Width="160">
+                <Border
+                    Height="60"
+                    Background="#CACBC6"
+                    BorderBrush="CadetBlue"
+                    BorderThickness="2"
+                    CornerRadius="6">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            Foreground="#280FF6"
+                            HorizontalTextAlignment="Center"
+                            Text="{x:Bind Word}" />
+                        <Border
+                            Grid.Row="1"
+                            Background="#131212"
+                            CornerRadius="0,0,4,4"
+                            Opacity=".75">
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="#DAE7D0"
+                                HorizontalTextAlignment="Center"
+                                Text="{x:Bind Time}" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Grid.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem
+                            Click="MenuFlyoutItem_Click"
+                            Tag="detail"
+                            Text="查看详情" />
+                        <MenuFlyoutItem
+                            Click="MenuFlyoutItem_Click"
+                            Tag="delete"
+                            Text="删除" />
+                    </MenuFlyout>
+                </Grid.ContextFlyout>
+            </Grid>
+        </DataTemplate>
+
+        <Color x:Key="WordTotalCountTextColor">#FF3700</Color>
+    </Page.Resources>
+
+    <Grid RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Spacing="30">
+            <AutoSuggestBox
+                x:Name="SearchMyWord"
+                Grid.Row="0"
+                Width="200"
+                HorizontalAlignment="Left"
+                PlaceholderText="input word"
+                QueryIcon="Find"
+                QuerySubmitted="SearchMyWord_QuerySubmitted"
+                TextChanged="SearchMyWord_TextChanged" />
+
+            <Border
+                Padding="10,0"
+                Background="#91E4ED"
+                CornerRadius="6">
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock Foreground="{StaticResource WordTotalCountTextColor}" Text="已记忆单词" />
+                    <TextBlock Foreground="{StaticResource WordTotalCountTextColor}" Text="{x:Bind ViewModel.WordTotalCount, Mode=OneWay}" />
+                    <TextBlock Foreground="{StaticResource WordTotalCountTextColor}" Text="个" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+
+
+        <GridView
+            x:Name="ContentArea"
+            Grid.Row="1"
+            ItemTemplate="{StaticResource ImageOverlayTemplate}"
+            ItemsSource="{x:Bind ViewModel.WordRecords, Mode=OneWay}"
+            SelectionMode="None">
+
+            <GridView.ItemContainerStyle>
+                <Style BasedOn="{StaticResource DefaultGridViewItemStyle}" TargetType="GridViewItem">
+                    <Setter Property="Margin" Value="5,5,5,5" />
+                </Style>
+            </GridView.ItemContainerStyle>
+
+            <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsWrapGrid
+                        x:Name="MaxItemsWrapGrid"
+                        MaximumRowsOrColumns="10"
+                        Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </GridView.ItemsPanel>
+        </GridView>
+
+        <ext:PagerControl
+            x:Name="Pager"
+            Grid.Row="2"
+            DisplayMode="ButtonPanel"
+            FirstButtonVisibility="Visible"
+            LastButtonVisibility="Visible"
+            NextButtonVisibility="Visible"
+            NumberOfPages="{x:Bind ViewModel.PageCount, Mode=OneWay}"
+            PreviousButtonVisibility="Visible"
+            SelectedIndexChanged="Pager_SelectedIndexChanged"
+            SelectedPageIndex="{x:Bind ViewModel.CurrentPage, Mode=TwoWay}" />
+
+    </Grid>
+
+</Page>

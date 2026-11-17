@@ -9,6 +9,7 @@
     xmlns:localStyle="using:MyEnglishWord.Styles"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     behaviors:NavigationViewHeaderBehavior.HeaderMode="Never"
+    NavigationCacheMode="Required"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -16,9 +17,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
                     <ctk:CollectionVisibilityConverter x:Key="CollectionVisibilityConverter" />
-                    <ContentDialog x:Key="MyDlgTemplate" CloseButtonText="">
-                        <Grid />
-                    </ContentDialog>
                 </ResourceDictionary>
                 <localStyle:MainPageStyle />
             </ResourceDictionary.MergedDictionaries>
@@ -36,6 +34,7 @@
             Orientation="Vertical"
             Spacing="5">
             <AutoSuggestBox
+                x:Name="SearchBox"
                 Width="200"
                 HorizontalAlignment="Left"
                 PlaceholderText="请输入搜索单词"

@@ -15,9 +15,9 @@ public class PageService : IPageService
     public PageService()
     {
         Configure<MainViewModel, MainPage>();
-        Configure<空白ViewModel, 空白Page>();
-        Configure<空白1ViewModel, 空白1Page>();
-        Configure<空白2ViewModel, 空白2Page>();
+        Configure<MyWordRecordViewModel, MyWordRecordPage>();
+        Configure<DBManagerViewModel, DBManagerPage>();
+        Configure<StudyStateViewModel, StudyStatePage>();
         Configure<SettingsViewModel, SettingsPage>();
     }
 

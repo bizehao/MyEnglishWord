@@ -26,13 +26,11 @@ public sealed partial class SettingsPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        WeakReferenceMessenger.Default.RegisterAll(this);
         ViewModel.IsActive = true;
     }
 
     protected async override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        WeakReferenceMessenger.Default.UnregisterAll(this);
         ViewModel.IsActive = false;
         base.OnNavigatedFrom(e);
 

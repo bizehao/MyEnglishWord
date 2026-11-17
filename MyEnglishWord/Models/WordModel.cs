@@ -65,7 +65,7 @@ public sealed partial class WordModel : ObservableObject
     {
         get;
         set;
-    } = -1;
+    }
 
     //是否是牛津三千核心词汇
     [ObservableProperty]
@@ -123,5 +123,26 @@ public sealed partial class WordModel : ObservableObject
         set;
     } = false;
 
+    public static WordModel Entry { get; } = new();
+
+    public static WordModel MakeWordModel(WordEntry entry)
+    {
+        return new()
+        {
+            Id = entry.Id,
+            Word = entry.Word,
+            Phonetic = entry.Phonetic,
+            Definition = entry.Definition,
+            Translation = entry.Translation,
+            Pos = entry.Pos,
+            Collins = entry.Collins,
+            Oxford = entry.Oxford is > 0,
+            Tag = entry.Tag,
+            Bnc = entry.Bnc,
+            Frq = entry.Frq,
+            Exchange = entry.Exchange,
+            Detail = entry.Detail is { Length: > 0 } ? entry.Detail : "无"
+        };
+    }
 }
 

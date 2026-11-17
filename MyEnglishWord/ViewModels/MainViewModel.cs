@@ -15,11 +15,16 @@ using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Media.SpeechRecognition;
 using Windows.Media.SpeechSynthesis;
+using WinRT;
+using static System.Net.Mime.MediaTypeNames;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace MyEnglishWord.ViewModels;
 
 public record ShowWordDetailDialog(WordModel word);
 public record ShowSpeechRecognizer(WordModel word);
+
+public record AddDictDataChanged();
 
 public partial class MainViewModel : ObservableRecipient
 {
@@ -72,36 +77,13 @@ public partial class MainViewModel : ObservableRecipient
         
     }
 
-    public WordModel MakeWordModel(WordEntry? entry)
-    {
-        if (entry is { })
-        {
-            return new()
-            {
-                Id = entry.Id,
-                Word = entry.Word,
-                Phonetic = entry.Phonetic,
-                Definition = entry.Definition,
-                Translation = entry.Translation,
-                Pos = entry.Pos,
-                Collins = entry.Collins ?? -1,
-                Oxford = entry.Oxford is > 0,
-                Tag = entry.Tag,
-                Bnc = entry.Bnc ?? 0,
-                Frq = entry.Frq ?? 0,
-                Exchange = entry.Exchange,
-                Detail = entry.Detail is { Length: > 0 } ? entry.Detail : "无"
-            };
-        }
-        else
-        {
-            return new();
-        }
-    }
-
     [RelayCommand]
-    private void HandleShowDetail(WordModel word)
+    private async void HandleShowDetail(WordModel word)
     {
+        var myWordRecordContext = App.GetService<MyWordRecordContext>();
+        var hasWord = await myWordRecordContext.Has(word.Word);
+        word.InDictionary = hasWord;
+
         LikeWordDetail = word;
         WeakReferenceMessenger.Default.Send(new ShowWordDetailDialog(word));
     }
@@ -125,6 +107,7 @@ public partial class MainViewModel : ObservableRecipient
         var db = App.GetService<MyWordRecordContext>();
         await db.Add(word.Word);
         word.InDictionary = true;
+        WeakReferenceMessenger.Default.Send(new AddDictDataChanged());
     }
 
     protected override void OnActivated()

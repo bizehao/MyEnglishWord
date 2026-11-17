@@ -48,6 +48,7 @@ public sealed partial class MainPage : Page
         ViewModel = App.GetService<MainViewModel>();
         DataContext = ViewModel;
         InitializeComponent();
+        WeakReferenceMessenger.Default.RegisterAll(this);
 
         _timerQueueOfProgress = DispatcherQueue.CreateTimer();
         _timerQueueOfInfoBar = DispatcherQueue.CreateTimer();
@@ -70,13 +71,17 @@ public sealed partial class MainPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        WeakReferenceMessenger.Default.RegisterAll(this);
         ViewModel.IsActive = true; // 激活，自动注册 Messenger IRecipient
+
+        if (e.Parameter is string {Length: > 0 } word)
+        {
+            SearchBox.Text = word;
+            AutoSuggestBox_QuerySubmitted(SearchBox, new AutoSuggestBoxQuerySubmittedEventArgs());
+        }
     }
 
     protected async override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        WeakReferenceMessenger.Default.UnregisterAll(this);
         ViewModel.IsActive = false; // 取消激活！触发 OnDeactivated，自动取消 messenger 订阅
 
         if (_stopRecognition is not null)
@@ -103,7 +108,7 @@ public sealed partial class MainPage : Page
             {
                 var myWordRecordContext = App.GetService<MyWordRecordContext>();
                 var hasWord = await myWordRecordContext.Has(text);
-                var wd = ViewModel.MakeWordModel(result);
+                var wd = WordModel.MakeWordModel(result);
                 wd.InDictionary = hasWord;
                 ViewModel.CurrentWord = wd;
                 Progress.ShowError = false;
@@ -111,7 +116,7 @@ public sealed partial class MainPage : Page
             else
             {
                 //todo: 提示
-                ViewModel.CurrentWord = ViewModel.MakeWordModel(null);
+                ViewModel.CurrentWord = WordModel.Entry;
                 Progress.ShowError = true;
             }
             Progress.ShowPaused = true;
@@ -123,7 +128,7 @@ public sealed partial class MainPage : Page
 
             var likeWordEntrys = await dbService.Match(text);
             var modelList = likeWordEntrys
-            .Select(e => ViewModel.MakeWordModel(e))
+            .Select(e => WordModel.MakeWordModel(e))
             .OrderByDescending(e => e.Collins)
             .ThenByDescending(e => e.Bnc)
             .ThenByDescending(e => e.Frq)
@@ -170,6 +175,10 @@ public sealed partial class MainPage : Page
         }
 
         _isRecognitionTaskRunning = true;
+
+        //先关闭infobar 提示
+        _timerQueueOfInfoBar.Stop();
+        ViewModel.SpeekInfoBarOpen = false;
 
         //todo 限制只能一个识别
         if (ViewModel.IsSpeeching)
@@ -257,12 +266,12 @@ public sealed partial class MainPage : Page
             _timerQueueOfInfoBar.Debounce(() =>
             {
                 ViewModel.SpeekInfoBarOpen = false;
-            }, TimeSpan.FromSeconds(5));
+            }, TimeSpan.FromSeconds(3));
         }
         else
         {
             ViewModel.SpeekInfoBarOpen = false;
         }
-        
     }
+
 }

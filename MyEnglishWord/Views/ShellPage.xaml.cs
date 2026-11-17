@@ -42,6 +42,9 @@ public sealed partial class ShellPage : Page
 
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu));
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.GoBack));
+
+        var settingItem = (NavigationViewItem)NavigationViewControl.SettingsItem;
+        settingItem.Content = "设置";
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
