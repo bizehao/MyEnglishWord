@@ -151,19 +151,30 @@ public sealed partial class MainPage : Page
 
     public async void Receive(ShowWordDetailDialog message)
     {
-        // 1. Measure：传入可用空间，无限大可用 new Size(double.PositiveInfinity, double.PositiveInfinity)
-        StandardPopupContent.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        //StandardPopupContent.Measure(new Size(715, double.PositiveInfinity));
+        //Size desired = StandardPopupContent.DesiredSize;
+        //var needW = desired.Width;
+        //var needH = (desired.Height + 4);
 
-        // DesiredSize 就是它想要的尺寸
-        Size desired = StandardPopupContent.DesiredSize;
-        var needW = desired.Width;
-        var needH = desired.Height;
+        //TestData.Text = needW.ToString() + " - " + needH.ToString();
 
-        var w = (ContentArea.ActualWidth - needW) / 2;
-        var h = (ContentArea.ActualHeight - needH) / 2;
-        StandardPopup.HorizontalOffset = w;
-        StandardPopup.VerticalOffset = h;
+        //if (needH > ContentArea.ActualHeight * 5 / 7)
+        //{
+        //    needH = ContentArea.ActualHeight * 5 / 7;
+        //}
+
+        //var w = (ContentArea.ActualWidth - needW) / 2;
+        //var h = (ContentArea.ActualHeight - needH) / 2;
+
+        //StandardPopupScrollView.ScrollTo(0, 0);
+        //StandardPopupGrid.Height = needH;
+
+        //StandardPopup.HorizontalOffset = w;
+        //StandardPopup.VerticalOffset = h;
+        StandardPopupGrid.Width = StandardPopupPos.ActualWidth;
+        StandardPopupGrid.Height = StandardPopupPos.ActualHeight;
         StandardPopup.IsOpen = true;
+
     }
 
     public async void Receive(ShowSpeechRecognizer message)
@@ -274,4 +285,8 @@ public sealed partial class MainPage : Page
         }
     }
 
+    private void ClosePopupButton_Click(object sender, RoutedEventArgs e)
+    {
+        StandardPopup.IsOpen = false;
+    }
 }

@@ -33,13 +33,17 @@
             Margin="0,10"
             Orientation="Vertical"
             Spacing="5">
-            <AutoSuggestBox
-                x:Name="SearchBox"
-                Width="200"
-                HorizontalAlignment="Left"
-                PlaceholderText="请输入搜索单词"
-                QueryIcon="Find"
-                QuerySubmitted="AutoSuggestBox_QuerySubmitted" />
+            <StackPanel Orientation="Horizontal">
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    Width="200"
+                    HorizontalAlignment="Left"
+                    PlaceholderText="请输入搜索单词"
+                    QueryIcon="Find"
+                    QuerySubmitted="AutoSuggestBox_QuerySubmitted" />
+                <TextBlock x:Name="TestData" />
+            </StackPanel>
+
             <ProgressBar
                 x:Name="Progress"
                 Width="200"
@@ -87,31 +91,61 @@
             </StackPanel>
         </ScrollView>
 
+        <Grid Grid.Row="0" Grid.RowSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="7*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="7*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <Popup
-            x:Name="StandardPopup"
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            IsLightDismissEnabled="True">
-            <Popup.ChildTransitions>
-                <TransitionCollection>
-                    <PaneThemeTransition Edge="Top" />
-                </TransitionCollection>
-            </Popup.ChildTransitions>
-            <Border
-                x:Name="StandardPopupContent"
-                Padding="20"
-                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="{StaticResource OverlayCornerRadius}">
-                <Border.Shadow>
-                    <ThemeShadow />
-                </Border.Shadow>
+            <Grid
+                x:Name="StandardPopupPos"
+                Grid.Row="1"
+                Grid.Column="1" />
 
-                <ContentPresenter Content="{x:Bind ViewModel.LikeWordDetail, Mode=OneWay}" ContentTemplate="{StaticResource WordDetailTemplate}" />
-            </Border>
-        </Popup>
+            <Popup
+                x:Name="StandardPopup"
+                Grid.Row="1"
+                Grid.Column="1"
+                IsLightDismissEnabled="True">
+                <Popup.ChildTransitions>
+                    <TransitionCollection>
+                        <PaneThemeTransition Edge="Top" />
+                    </TransitionCollection>
+                </Popup.ChildTransitions>
+
+                <Grid
+                    x:Name="StandardPopupGrid"
+                    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource OverlayCornerRadius}">
+                    <Grid.Shadow>
+                        <ThemeShadow />
+                    </Grid.Shadow>
+                    <ScrollView x:Name="StandardPopupScrollView">
+                        <ContentPresenter
+                            x:Name="StandardPopupContent"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Content="{x:Bind ViewModel.LikeWordDetail, Mode=OneWay}"
+                            ContentTemplate="{StaticResource WordDetailTemplate}" />
+                    </ScrollView>
+                    <Button
+                        Padding="5"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Click="ClosePopupButton_Click">
+                        <FontIcon Glyph="&#xE711;" />
+                    </Button>
+                </Grid>
+            </Popup>
+        </Grid>
 
         <InfoBar
             x:Name="SpeekInfoBar"

@@ -272,7 +272,7 @@
         <Grid
             x:Name="controlRoot"
             Width="240"
-            Height="140"
+            Height="160"
             Padding="10"
             HorizontalAlignment="Stretch"
             Background="{ThemeResource ControlFillColorDefaultBrush}"
@@ -311,6 +311,7 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
                     <TextBlock FontSize="14" Text="牛津三千:" />
@@ -329,17 +330,14 @@
                         FontSize="14"
                         Text="{x:Bind Tag, Mode=OneWay}" />
                 </StackPanel>
-                <StackPanel Grid.Row="2" Orientation="Horizontal">
-                    <TextBlock
-                        Grid.Row="0"
-                        FontSize="14"
-                        Text="词频顺序:" />
-                    <TextBlock
-                        Grid.Row="1"
-                        FontSize="14"
-                        Text="15" />
-                </StackPanel>
-
+                <TextBlock Grid.Row="2" FontSize="14">
+                    <Run Text="英语国家词频顺序:" />
+                    <Run Text="{x:Bind Bnc, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Grid.Row="3" FontSize="14">
+                    <Run Text="当代语料库词频顺序:" />
+                    <Run Text="{x:Bind Frq, Mode=OneWay}" />
+                </TextBlock>
             </Grid>
 
             <Border
