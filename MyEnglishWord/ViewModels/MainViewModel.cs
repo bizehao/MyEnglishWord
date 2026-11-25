@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -10,13 +11,17 @@ using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Core.Models;
 using MyEnglishWord.Helpers;
 using MyEnglishWord.Models;
+using Windows.ApplicationModel.Chat;
 using Windows.Globalization;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Media.SpeechRecognition;
 using Windows.Media.SpeechSynthesis;
+using Windows.UI.Core;
 using WinRT;
+using WordNetSqlite;
 using static System.Net.Mime.MediaTypeNames;
+using static MyEnglishWord.Models.WordModel;
 using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace MyEnglishWord.ViewModels;
@@ -24,7 +29,7 @@ namespace MyEnglishWord.ViewModels;
 public record ShowWordDetailDialog(WordModel word);
 public record ShowSpeechRecognizer(WordModel word);
 
-public record AddDictDataChanged();
+public record AddDictDataChanged(string word);
 
 public partial class MainViewModel : ObservableRecipient
 {
@@ -84,6 +89,8 @@ public partial class MainViewModel : ObservableRecipient
         var hasWord = await myWordRecordContext.Has(word.Word);
         word.InDictionary = hasWord;
 
+        await AddExtentFromWordNet(word);
+
         LikeWordDetail = word;
         WeakReferenceMessenger.Default.Send(new ShowWordDetailDialog(word));
     }
@@ -107,7 +114,7 @@ public partial class MainViewModel : ObservableRecipient
         var db = App.GetService<MyWordRecordContext>();
         await db.Add(word.Word);
         word.InDictionary = true;
-        WeakReferenceMessenger.Default.Send(new AddDictDataChanged());
+        WeakReferenceMessenger.Default.Send(new AddDictDataChanged(word.Word));
     }
 
     protected override void OnActivated()
@@ -122,4 +129,74 @@ public partial class MainViewModel : ObservableRecipient
         SpeekInfoBarOpen = false;
     }
 
+    public static async Task AddExtentFromWordNet(WordModel word)
+    {
+        if (!word.LoadExtent)
+        {
+            await FindFromWordNet(word.Word, word.Morphs, word.Synsets);
+            word.LoadExtent = true;
+        }
+    }
+
+    private static async Task FindFromWordNet(string searchStr, ObservableCollection<string> iMorphs, ObservableCollection<SynsetModel> iSynsets)
+    {
+        //todo:优化写法
+        var wordNetDatabase = App.GetService<WordNetDatabase>();
+        var baseSynsets = new Dictionary<WordNetSqlite.PartOfSpeech, Synset>();
+        var validPos = new WordNetSqlite.PartOfSpeech[] { WordNetSqlite.PartOfSpeech.Noun, WordNetSqlite.PartOfSpeech.Verb, WordNetSqlite.PartOfSpeech.Adj, WordNetSqlite.PartOfSpeech.Adv };
+        bool infoFound = false;
+        foreach (var pos in validPos)
+        {
+            var ss = await wordNetDatabase.FindTheInfoDsAsync(searchStr, pos, SearchType.ShowAllSynsetsForWord, 0);
+            if (ss != null)
+            {
+                infoFound = true;
+            }
+            baseSynsets[pos] = ss;
+        }
+        var validMorphPos = new WordNetSqlite.PartOfSpeech[] { WordNetSqlite.PartOfSpeech.Noun, WordNetSqlite.PartOfSpeech.Verb, WordNetSqlite.PartOfSpeech.Adj, WordNetSqlite.PartOfSpeech.Adv };
+        List<string> morphs = [];
+        var morphFound = false;
+        foreach (var pos in validMorphPos)
+        {
+            var morphsOfThisPos = await wordNetDatabase.MorphStrAsync(searchStr, pos);
+            if (morphsOfThisPos.Count > 0)
+            {
+                morphFound = true;
+            }
+            foreach (var foundMorph in morphsOfThisPos)
+            {
+                if (!morphs.Contains(foundMorph))
+                {
+                    morphs.Add(foundMorph);
+                }
+            }
+        }
+
+        if (morphFound && !infoFound && morphs.Count == 1)
+        {
+            var newSearchStr = morphs[0];
+            await FindFromWordNet(newSearchStr, iMorphs, iSynsets);
+        }
+        else
+        {
+            foreach (var baseSynset in baseSynsets)
+            {
+                Synset curr = baseSynset.Value;
+                uint indexInThisPos = 0;
+                while (curr != null)
+                {
+                    var synsetModel = new SynsetModel(baseSynset.Key, curr);
+                    iSynsets.Add(synsetModel);
+                    curr = curr.NextSS!;
+                    ++indexInThisPos;
+                }
+            }
+
+            foreach (var morph in morphs)
+            {
+                iMorphs.Add(morph);
+            }
+        }
+    }
 }

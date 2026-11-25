@@ -1,0 +1,85 @@
+﻿#if false
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Windows.Win32.Foundation;
+using static SkiaSharp.HarfBuzz.SKShaper;
+
+
+namespace MyEnglishWord.Helpers;
+
+internal partial class NativeMethods
+{
+    [DllImport("User32.dll", CharSet = CharSet.Auto, EntryPoint = "SetWindowLongPtr")]
+    internal static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("User32.dll", CharSet = CharSet.Auto, EntryPoint = "SetWindowLong")]
+    internal static extern IntPtr SetWindowLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    internal unsafe static void SetWindowKeyHook()
+    {
+        delegate* unmanaged[Stdcall]<int, WPARAM, LPARAM, LRESULT> callback = &HookCallback;
+
+        // GetModuleHandle does not increment the ref count, so the handle must not be freed.
+        // The hook handle must live for the entire app lifetime to keep the keyboard hook active.
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var moduleHandle = Windows.Win32.PInvoke.GetModuleHandle(string.Empty);
+        var threadId = Windows.Win32.PInvoke.GetCurrentThreadId();
+
+        var res = Windows.Win32.PInvoke.SetWindowsHookEx(Windows.Win32.UI.WindowsAndMessaging.WINDOWS_HOOK_ID.WH_KEYBOARD, callback, moduleHandle, threadId);
+#pragma warning restore CA2000
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+        static LRESULT HookCallback(int msg, WPARAM wPARAM, LPARAM lPARAM)
+        {
+            if (msg >= 0 && IsKeyDownHook(lPARAM))
+            {
+                RootFrameNavigationHelper.RaiseKeyPressed((uint)wPARAM);
+            }
+            return Windows.Win32.PInvoke.CallNextHookEx(null, msg, wPARAM, lPARAM);
+        }
+    }
+
+    internal static bool IsKeyDownHook(IntPtr lWord)
+    {
+        // The 30th bit tells what the previous key state is with 0 being the "UP" state
+        // For more info see https://learn.microsoft.com/windows/win32/winmsg/keyboardproc#lparam-in
+        return (lWord >> 30 & 1) == 0;
+    }
+
+    internal static bool IsAppPackaged { get; } = GetCurrentPackageName() != null;
+    internal static string? GetCurrentPackageName()
+    {
+        unsafe
+        {
+            uint packageFullNameLength = 0;
+
+            var result = Windows.Win32.PInvoke.GetCurrentPackageFullName(&packageFullNameLength, null);
+
+            if (result == WIN32_ERROR.ERROR_INSUFFICIENT_BUFFER)
+            {
+                char* packageFullName = stackalloc char[(int)packageFullNameLength];
+
+                result = Windows.Win32.PInvoke.GetCurrentPackageFullName(&packageFullNameLength, packageFullName);
+
+                if (result == 0) // S_OK or ERROR_SUCCESS
+                {
+                    return new string(packageFullName, 0, (int)packageFullNameLength);
+                }
+            }
+        }
+
+        return null;
+    }
+}
+
+#endif

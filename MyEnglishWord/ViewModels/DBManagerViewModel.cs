@@ -40,7 +40,7 @@ public partial class DBManagerViewModel : ObservableRecipient
     {
         get;
         set;
-    } = 100;
+    } = 20;
 
     private (int index, string searchString) OldDataState = (-1, string.Empty);
 
@@ -71,25 +71,41 @@ public partial class DBManagerViewModel : ObservableRecipient
         {
             SearchText = searchString;
             data = await mrc.GetDataByStr(SearchText, index, PageSize);
-            var tmpWords = data.Data;
-            Words = await Task.Run(() =>
-            {
-                return tmpWords.Select(e => WordModel.MakeWordModel(e)).ToList();
-            });
-            PageCount = data.PageCount;
         }
         else
         {
             SearchText = string.Empty;
             data = await mrc.GetData(index, PageSize);
-            var tmpWords = data.Data;
-            Words = await Task.Run(() =>
-            {
-                return tmpWords.Select(e => WordModel.MakeWordModel(e)).ToList();
-            });
-            PageCount = data.PageCount;
         }
 
+        var tmpWords = data.Data;
+        Words = await Task.Run(() =>
+        {
+            return tmpWords.Select(e => WordModel.MakeWordModel(e)).ToList();
+        });
+        PageCount = data.PageCount;
+
         CurrentPage = index;
+
+        var captureWords = Words;
+        var ws = Words.Select(x => x.Word).ToList();
+        var myWordRecordContext = App.GetService<MyWordRecordContext>();
+        var hasws = await myWordRecordContext.Has(ws);
+        if (captureWords == Words && hasws.Count > 0)
+        {
+            foreach (var it in Words)
+            {
+                if (hasws.Count == 0)
+                {
+                    break;
+                }
+                if (hasws.Contains(it.Word))
+                {
+                    it.InDictionary = true;
+                    hasws.Remove(it.Word);
+                }
+            }
+        }
+
     }
 }

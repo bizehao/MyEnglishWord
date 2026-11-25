@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
 using MyEnglishWord.Core.Models;
+using MyEnglishWord.Models;
+using static MyEnglishWord.ViewModels.MainViewModel;
 
 namespace MyEnglishWord.Models;
 
@@ -114,10 +117,25 @@ public sealed partial class WordModel : ObservableObject
         get;
         set;
     }
-    //string? Audio
+    //扩展
+    public ObservableCollection<string> Morphs
+    {
+        get;
+    } = [];
+    //扩展
+    public ObservableCollection<SynsetModel> Synsets
+    {
+        get;
+    } = [];
 
     [ObservableProperty]
     public partial bool InDictionary
+    {
+        get;
+        set;
+    } = false;
+
+    public bool LoadExtent
     {
         get;
         set;
@@ -144,5 +162,81 @@ public sealed partial class WordModel : ObservableObject
             Detail = entry.Detail is { Length: > 0 } ? entry.Detail : "无"
         };
     }
+
+
 }
 
+
+//public partial class ExampleViewModel : ObservableObject
+//{
+//    [ObservableProperty]
+//    public partial string Example
+//    {
+//        get;
+//        set;
+//    } = string.Empty;
+
+//    [ObservableProperty]
+//    public partial string[] Words
+//    {
+//        get;
+//        set;
+//    } = [];
+
+//}
+
+//public partial class SynsetViewModel : ObservableObject
+//{
+//    public SynsetViewModel(SynsetModel synsetModel, string queryText, WordNetSqlite.PartOfSpeech pos, uint index)
+//    {
+//        SynsetModel = synsetModel;
+//        QueryText = queryText;
+//        Pos = pos;
+//        IndexInQuery = index;
+
+//        if (SynsetModel.Examples != null)
+//        {
+//            ExampleViewModel[] exampleViewModels = new ExampleViewModel[SynsetModel.Examples.Length];
+//            for (int i = 0; i < SynsetModel.Examples.Length; ++i)
+//            {
+//                exampleViewModels[i] = new ExampleViewModel
+//                {
+//                    Words = Words.ToArray(),
+//                    Example = SynsetModel.Examples[i]
+//                };
+//            }
+//            Examples = exampleViewModels;
+//        }
+//    }
+
+//    public SynsetModel SynsetModel
+//    {
+//        get;
+//    }
+
+//    public string QueryText
+//    {
+//        get;
+//    }
+
+//    public WordNetSqlite.PartOfSpeech Pos
+//    {
+//        get;
+//    }
+
+//    public uint Key => SynsetModel.Key;
+
+//    public string Definition => SynsetModel.Definition;
+
+//    public string[] Words => SynsetModel.Words;
+
+//    public ExampleViewModel[]? Examples
+//    {
+//        get;
+//    }
+
+//    public uint IndexInQuery
+//    {
+//        get;
+//    }
+//}

@@ -17,6 +17,7 @@ using MyEnglishWord.ViewModels;
 using MyEnglishWord.Views;
 using Windows.Storage;
 using Windows.UI;
+using WordNetSqlite;
 
 namespace MyEnglishWord;
 
@@ -63,11 +64,8 @@ public partial class App : Application
             // Default Activation Handler
             services.AddTransient<ActivationHandler<LaunchActivatedEventArgs>, DefaultActivationHandler>();
 
-            // Other Activation Handlers
-            services.AddSingleton<PlayVoice>();
-            var options = new Options { CreateIfMissing = true };
-            var db = new DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word.db");
-            services.AddSingleton<DB>(db);
+            // Core Services
+            services.AddSingleton<IFileService, FileService>();
 
             // Services
             services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
@@ -78,6 +76,12 @@ public partial class App : Application
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
 
+
+            // Other Activation Handlers
+            services.AddSingleton<PlayVoice>();
+            //var options = new Options { CreateIfMissing = true };
+            //var db = new DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word.db");
+            //services.AddSingleton<DB>(db);
 
             services.AddDbContext<EnglishWordContext>(async options =>
             {
@@ -91,8 +95,13 @@ public partial class App : Application
                 options.UseSqlite($"Data Source={db}");
             });
 
-            // Core Services
-            services.AddSingleton<IFileService, FileService>();
+            //初始化wordnet db
+            services.AddSingleton<WordNetDatabase>((IServiceProvider sp) =>
+            {
+                var wordnetdb = StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/wordnet31.db"));
+                var database = new WordNetDatabase(wordnetdb.Get().Path);
+                return database;
+            });
 
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
@@ -137,9 +146,12 @@ public partial class App : Application
         var myWordRecordContext = App.GetService<MyWordRecordContext>();
         await myWordRecordContext.Database.EnsureCreatedAsync();
 
-        base.OnLaunched(args);
-
         await App.GetService<IActivationService>().ActivateAsync(args);
         await App.GetService<SettingsViewModel>().InitAsync();
+
+        await App.GetService<WordNetDatabase>().InitializeAsync();
+
+        base.OnLaunched(args);
+
     }
 }

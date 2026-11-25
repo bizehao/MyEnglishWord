@@ -2,6 +2,9 @@
   <Configurations>
     <Platform Name="x64" />
   </Configurations>
+  <Folder Name="/Tools/">
+    <Project Path="WordNetSqliteDbGen/WordNetSqliteDbGen.csproj" Id="6dd68940-9729-448f-b311-98d886148432" />
+  </Folder>
   <Project Path="MyEnglishWord.Core/MyEnglishWord.Core.csproj">
     <Platform Project="x64" />
   </Project>
@@ -9,4 +12,5 @@
     <Platform Project="x64" />
     <Deploy />
   </Project>
+  <Project Path="WordNetSqlite/WordNetSqlite.csproj" Id="91d90ae3-1d38-45ed-a8d1-92023c7fa859" />
 </Solution>

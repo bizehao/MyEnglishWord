@@ -8,6 +8,8 @@ namespace MyEnglishWord.ViewModels;
 public partial class MyWordRecordViewModel : ObservableRecipient
 {
 
+    public record DictDataChanged(string Word, bool Result);
+
     [ObservableProperty]
     public partial List<MyWordRecord>? WordRecords
     {

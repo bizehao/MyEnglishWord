@@ -20,12 +20,15 @@ using Windows.Globalization;
 using Windows.Media.Capture;
 using Windows.Media.SpeechRecognition;
 using WinRT;
+using WordNetSqlite;
+using static MyEnglishWord.ViewModels.MyWordRecordViewModel;
 
 namespace MyEnglishWord.Views;
 
 public sealed partial class MainPage : Page
     , IRecipient<ShowWordDetailDialog>
     , IRecipient<ShowSpeechRecognizer>
+    , IRecipient<DictDataChanged>
 {
     //private delegate void PageClosed();
 
@@ -94,7 +97,7 @@ public sealed partial class MainPage : Page
 
     private async void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        if (sender.Text is { Length: > 0 } text)
+        if (sender.Text is { Length: > 0 } searchStr)
         {
             //查询单词
             _timerQueueOfProgress.Stop();
@@ -102,16 +105,17 @@ public sealed partial class MainPage : Page
             Progress.ShowPaused = false;
             Progress.ShowError = false;
             var dbService = App.GetService<EnglishWordContext>();
-            var result = await dbService.QueryWordAsync(text);
+            var result = await dbService.QueryWordAsync(searchStr);
 
             if (result is not null)
             {
                 var myWordRecordContext = App.GetService<MyWordRecordContext>();
-                var hasWord = await myWordRecordContext.Has(text);
+                var hasWord = await myWordRecordContext.Has(searchStr);
                 var wd = WordModel.MakeWordModel(result);
                 wd.InDictionary = hasWord;
                 ViewModel.CurrentWord = wd;
                 Progress.ShowError = false;
+                await MainViewModel.AddExtentFromWordNet(wd);
             }
             else
             {
@@ -126,7 +130,7 @@ public sealed partial class MainPage : Page
                 Progress.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
             }, TimeSpan.FromSeconds(5));
 
-            var likeWordEntrys = await dbService.Match(text);
+            var likeWordEntrys = await dbService.Match(searchStr);
             var modelList = likeWordEntrys
             .Select(e => WordModel.MakeWordModel(e))
             .OrderByDescending(e => e.Collins)
@@ -151,30 +155,9 @@ public sealed partial class MainPage : Page
 
     public async void Receive(ShowWordDetailDialog message)
     {
-        //StandardPopupContent.Measure(new Size(715, double.PositiveInfinity));
-        //Size desired = StandardPopupContent.DesiredSize;
-        //var needW = desired.Width;
-        //var needH = (desired.Height + 4);
-
-        //TestData.Text = needW.ToString() + " - " + needH.ToString();
-
-        //if (needH > ContentArea.ActualHeight * 5 / 7)
-        //{
-        //    needH = ContentArea.ActualHeight * 5 / 7;
-        //}
-
-        //var w = (ContentArea.ActualWidth - needW) / 2;
-        //var h = (ContentArea.ActualHeight - needH) / 2;
-
-        //StandardPopupScrollView.ScrollTo(0, 0);
-        //StandardPopupGrid.Height = needH;
-
-        //StandardPopup.HorizontalOffset = w;
-        //StandardPopup.VerticalOffset = h;
         StandardPopupGrid.Width = StandardPopupPos.ActualWidth;
         StandardPopupGrid.Height = StandardPopupPos.ActualHeight;
         StandardPopup.IsOpen = true;
-
     }
 
     public async void Receive(ShowSpeechRecognizer message)
@@ -225,12 +208,10 @@ public sealed partial class MainPage : Page
                 return;
             }
 
-            var stopRecognize = async () =>
+            _stopRecognition = async () =>
             {
                 await speechRecognizer.StopRecognitionAsync();
             };
-
-            _stopRecognition = stopRecognize;
 
             var textResult = await speechRecognizer.RecognizeAsync();
 
@@ -288,5 +269,13 @@ public sealed partial class MainPage : Page
     private void ClosePopupButton_Click(object sender, RoutedEventArgs e)
     {
         StandardPopup.IsOpen = false;
+    }
+
+    public void Receive(DictDataChanged message)
+    {
+        if (ViewModel.CurrentWord.Word == message.Word)
+        {
+            ViewModel.CurrentWord.InDictionary = message.Result;
+        }
     }
 }

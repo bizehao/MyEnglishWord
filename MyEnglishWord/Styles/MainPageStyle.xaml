@@ -3,10 +3,15 @@
     x:Class="MyEnglishWord.Styles.MainPageStyle"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:converter="using:MyEnglishWord.Helpers"
     xmlns:ctk="using:CommunityToolkit.WinUI.Converters"
+    xmlns:custom="using:MyEnglishWord.Control"
     xmlns:helper="using:MyEnglishWord.Helpers"
-    xmlns:models="using:MyEnglishWord.Models">
+    xmlns:layout="using:MyEnglishWord.Layout"
+    xmlns:media="using:CommunityToolkit.WinUI.Media"
+    xmlns:models="using:MyEnglishWord.Models"
+    xmlns:ui="using:CommunityToolkit.WinUI">
 
     <Style
         x:Key="IndentedGridViewItemStyle"
@@ -18,10 +23,107 @@
     <ctk:BoolNegationConverter x:Key="BoolNegationConverter" />
     <ctk:StringVisibilityConverter x:Key="StringVisibilityConverter" />
     <helper:BoolToIconConverter x:Key="BoolToIconConverter" />
+    <helper:PartOfSpeechToColorConverter x:Key="PartOfSpeechToColorConverter" />
+    <helper:PartOfSpeechToTextConverter x:Key="PartOfSpeechToTextConverter" />
+
+
+    <helper:ValueConverterGroup x:Key="WordArrayToStringConverter">
+        <helper:JoinWordsConverter Seperator=", " />
+        <helper:StringReplaceConverter NewValue=" " OldValue="_" />
+    </helper:ValueConverterGroup>
+
+    <DataTemplate x:Key="StaggeredTemplate" x:DataType="models:SynsetModel">
+        <Frame
+            Margin="5"
+            Padding="5"
+            BorderBrush="{x:Bind PSType, Converter={StaticResource PartOfSpeechToColorConverter}}"
+            BorderThickness="2"
+            CornerRadius="6">
+
+            <ui:Effects.Shadow>
+                <media:AttachedCardShadow CornerRadius="8" Offset="2,2" />
+            </ui:Effects.Shadow>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    VerticalAlignment="Center"
+                    FontSize="{ThemeResource TextStyleLargeFontSize}"
+                    FontWeight="Bold"
+                    IsTextSelectionEnabled="True"
+                    Text="{x:Bind Words, Mode=OneWay, Converter={StaticResource WordArrayToStringConverter}}"
+                    TextWrapping="Wrap">
+                    <TextBlock.SelectionFlyout>
+                        <custom:QueryableTextCommandBarFlyout />
+                    </TextBlock.SelectionFlyout>
+                    <TextBlock.ContextFlyout>
+                        <custom:QueryableTextCommandBarFlyout />
+                    </TextBlock.ContextFlyout>
+                </TextBlock>
+                <TextBlock
+                    Grid.Row="1"
+                    IsTextSelectionEnabled="True"
+                    Text="{x:Bind Definition, Mode=OneWay}"
+                    TextWrapping="Wrap">
+                    <TextBlock.SelectionFlyout>
+                        <custom:QueryableTextCommandBarFlyout />
+                    </TextBlock.SelectionFlyout>
+                    <TextBlock.ContextFlyout>
+                        <custom:QueryableTextCommandBarFlyout />
+                    </TextBlock.ContextFlyout>
+                </TextBlock>
+                <ListView
+                    x:Name="ExampleListView"
+                    Grid.Row="2"
+                    Margin="0,5,0,5"
+                    ItemsSource="{x:Bind Examples, Mode=OneWay}"
+                    SelectionMode="None">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <RichTextBlock
+                                    x:Name="ExampleRichTextBlock"
+                                    Grid.Row="0"
+                                    DataContextChanged="ExampleRichTextBlock_DataContextChanged"
+                                    TextWrapping="Wrap">
+                                    <RichTextBlock.SelectionFlyout>
+                                        <custom:QueryableTextCommandBarFlyout />
+                                    </RichTextBlock.SelectionFlyout>
+                                    <RichTextBlock.ContextFlyout>
+                                        <custom:QueryableTextCommandBarFlyout />
+                                    </RichTextBlock.ContextFlyout>
+                                </RichTextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="MinHeight" Value="0" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+
+                <TextBlock
+                    Grid.Row="3"
+                    HorizontalAlignment="Right"
+                    Text="{x:Bind PSType, Converter={StaticResource PartOfSpeechToTextConverter}}" />
+            </Grid>
+        </Frame>
+    </DataTemplate>
+
+
 
     <DataTemplate x:Key="WordDetailTemplate" x:DataType="models:WordModel">
         <StackPanel
-            Margin="10,4"
+            Margin="10"
             Orientation="Vertical"
             Spacing="6">
             <!--  单词 + 音标  -->
@@ -42,7 +144,7 @@
                 <Button
                     Padding="5"
                     VerticalAlignment="Center"
-                    Command="{Binding ElementName=ItemGridView, Path=DataContext.HandlePlayWordCommand, Mode=OneWay}"
+                    Command="{Binding ElementName=Root, Path=DataContext.HandlePlayWordCommand, Mode=OneWay}"
                     CommandParameter="{Binding}"
                     Visibility="{x:Bind Word, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
                     <FontIcon Glyph="&#xE994;" />
@@ -51,10 +153,10 @@
                     x:Name="Speech"
                     Padding="5"
                     VerticalAlignment="Center"
-                    Command="{Binding ElementName=ItemGridView, Path=DataContext.HandleReadWordCommand, Mode=OneWay}"
+                    Command="{Binding ElementName=Root, Path=DataContext.HandleReadWordCommand, Mode=OneWay}"
                     CommandParameter="{Binding}"
                     Visibility="{x:Bind Word, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <FontIcon Glyph="{Binding ElementName=ItemGridView, Path=DataContext.IsSpeeching, Mode=OneWay, Converter={StaticResource BoolToIconConverter}, ConverterParameter='&#xE7C8;|&#xE720;'}" />
+                    <FontIcon Glyph="{Binding ElementName=Root, Path=DataContext.IsSpeeching, Mode=OneWay, Converter={StaticResource BoolToIconConverter}, ConverterParameter='&#xE7C8;|&#xE720;'}" />
                 </Button>
 
 
@@ -62,7 +164,7 @@
                     x:Name="ToRecord"
                     Padding="5"
                     VerticalAlignment="Center"
-                    Command="{Binding ElementName=ItemGridView, Path=DataContext.HandleAddDictCommand, Mode=OneWay}"
+                    Command="{Binding ElementName=Root, Path=DataContext.HandleAddDictCommand, Mode=OneWay}"
                     CommandParameter="{Binding}"
                     IsEnabled="{x:Bind InDictionary, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
                     Visibility="{x:Bind Word, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
@@ -255,16 +357,36 @@
                     LineHeight="24"
                     Text="{x:Bind Detail, Mode=OneWay}"
                     TextWrapping="Wrap" />
+
             </StackPanel>
 
-            <!--  预留：音频audio、detail扩展信息  -->
-            <!--<StackPanel Orientation="Horizontal" Spacing="8">
-            <Button
-                Command="{x:Bind PlayAudioCmd}"
-                Content="播放读音"
-                IsEnabled="{x:Bind DataContext.SelectedWord.Audio, Mode=OneWay, Converter={StaticResource NullToBoolConv}}" />
-            <Button Command="{x:Bind ShowDetailCmd}" Content="查看扩展Detail" />
-        </StackPanel>-->
+            <ItemsRepeater
+                x:Name="StaggeredRepeater"
+                ItemTemplate="{StaticResource StaggeredTemplate}"
+                ItemsSource="{x:Bind Synsets, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+
+                    <layout:StaggeredLayout
+                        ColumnSpacing="5"
+                        DesiredColumnWidth="250"
+                        ItemsStretch="Fill"
+                        RowSpacing="5" />
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+
+
+            <!--<GridView ItemTemplate="{StaticResource StaggeredTemplate}" ItemsSource="{x:Bind Synsets, Mode=OneWay}">
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <controls:StaggeredPanel
+                            ColumnSpacing="5"
+                            DesiredColumnWidth="250"
+                            RowSpacing="5" />
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+            </GridView>-->
+
+
         </StackPanel>
     </DataTemplate>
 

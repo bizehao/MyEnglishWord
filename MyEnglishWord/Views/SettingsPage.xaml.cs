@@ -33,9 +33,6 @@ public sealed partial class SettingsPage : Page
     {
         ViewModel.IsActive = false;
         base.OnNavigatedFrom(e);
-
-        var pv = App.GetService<PlayVoice>();
-        await pv.Init();
     }
 
     private async void VoiceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -43,11 +40,12 @@ public sealed partial class SettingsPage : Page
         var pv = App.GetService<PlayVoice>();
         var it = ViewModel.VoiceChoose[ViewModel.VoiceSelected];
         pv.Reset(it.Name, it.Type);
+        await pv.Init();
 
         var lss = App.GetService<ILocalSettingsService>();
         if (lss is { })
         {
-            await lss.SaveSettingAsync(LocalSetDefine.VoiceSelected, it.Name);
+            await lss.SaveSettingAsync(LocalSetDefine.VoiceSelected, it.Name); 
         }
     }
 }

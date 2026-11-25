@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WordNetSqliteDbGen": {
+      "commandName": "Project",
+      "commandLineArgs": "--dict-archive \"C:\\Users\\bzh\\projects\\MyEnglishWord\\Tmp\\wn3.1.dict.tar.gz\"\r\n--output \"C:\\Users\\bzh\\projects\\MyEnglishWord\\Tmp\\wordnet31.db\"\r\n\r\n"
+    }
+  }
+}

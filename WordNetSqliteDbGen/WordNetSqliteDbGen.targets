@@ -1,0 +1,60 @@
+<Project>
+  <!--
+    Builds the WordNet SQLite dictionary for a project that ships it.
+
+    This file belongs to WordNetSqliteDbGen: it knows how to build that project and how to run it,
+    so a consumer only imports this file, sets WordNetDictionaryDatabase, and depends on the
+    GenerateWordNetDictionary target. Nothing about the generator - its configuration, its output
+    path, its sources - is repeated in the consuming project.
+
+    The generator itself skips the work when the database is newer than the dictionary and than the
+    generator, so the target can be depended on unconditionally.
+  -->
+  <PropertyGroup>
+    <WordNetDictionaryUrl Condition="'$(WordNetDictionaryUrl)' == ''">https://wordnetcode.princeton.edu/wn3.1.dict.tar.gz</WordNetDictionaryUrl>
+    <WordNetDictionaryArchiveDir Condition="'$(WordNetDictionaryArchiveDir)' == ''">$(BaseIntermediateOutputPath)</WordNetDictionaryArchiveDir>
+    <WordNetDictionaryArchive Condition="'$(WordNetDictionaryArchive)' == ''">$(WordNetDictionaryArchiveDir)wn3.1.dict.tar.gz</WordNetDictionaryArchive>
+    <WordNetDictionaryDatabase Condition="'$(WordNetDictionaryDatabase)' == ''">$(BaseIntermediateOutputPath)wordnet31.db</WordNetDictionaryDatabase>
+    <_WordNetDbGenProject>$(MSBuildThisFileDirectory)WordNetSqliteDbGen.csproj</_WordNetDbGenProject>
+  </PropertyGroup>
+
+  <Target Name="DownloadWordNetDictionary" Condition="!Exists('$(WordNetDictionaryArchive)')">
+    <Message Importance="high" Text="Downloading the WordNet dictionary"/>
+    <DownloadFile SourceUrl="$(WordNetDictionaryUrl)" DestinationFolder="$(WordNetDictionaryArchiveDir)">
+      <Output TaskParameter="DownloadedFile" PropertyName="WordNetDictionaryArchive"/>
+    </DownloadFile>
+  </Target>
+
+  <Target Name="_BuildWordNetDbGen">
+    <!--
+      The generator is a net10.0 console application, so the target framework, platform and runtime
+      identifier of the consuming application must not flow into its build. It is built with its own
+      settings otherwise, and its output path comes back in the target outputs rather than being
+      spelled out here.
+    -->
+    <MSBuild Projects="$(_WordNetDbGenProject)"
+             Targets="Restore;Build"
+             Properties="Configuration=$(Configuration)"
+             RemoveProperties="TargetFramework;TargetFrameworks;TargetFrameworkIdentifier;TargetFrameworkVersion;TargetFrameworkProfile;TargetPlatformIdentifier;TargetPlatformVersion;RuntimeIdentifier;RuntimeIdentifiers;Platform">
+      <Output TaskParameter="TargetOutputs" ItemName="_WordNetDbGenBinary"/>
+    </MSBuild>
+  </Target>
+
+  <Target Name="GenerateWordNetDictionary"
+          DependsOnTargets="DownloadWordNetDictionary;_BuildWordNetDbGen">
+    <Exec Command="dotnet &quot;@(_WordNetDbGenBinary)&quot; --dict-archive &quot;$(WordNetDictionaryArchive)&quot; --output &quot;$(WordNetDictionaryDatabase)&quot;" />
+  </Target>
+
+  <!--
+    Set WordNetDictionaryEmbeddedResourceName to have the database embedded in the consuming
+    assembly, which is how the apps ship it.
+  -->
+  <Target Name="EmbedWordNetDictionary"
+          BeforeTargets="PreBuildEvent"
+          DependsOnTargets="GenerateWordNetDictionary"
+          Condition="'$(WordNetDictionaryEmbeddedResourceName)' != ''">
+    <ItemGroup>
+      <EmbeddedResource Include="$(WordNetDictionaryDatabase)" LogicalName="$(WordNetDictionaryEmbeddedResourceName)" Condition="Exists('$(WordNetDictionaryDatabase)')"/>
+    </ItemGroup>
+  </Target>
+</Project>

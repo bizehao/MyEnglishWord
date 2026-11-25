@@ -7,11 +7,13 @@ using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Core.Models;
 using MyEnglishWord.Models;
 using MyEnglishWord.ViewModels;
+using static MyEnglishWord.ViewModels.MyWordRecordViewModel;
 
 namespace MyEnglishWord.Views;
 
 public sealed partial class MyWordRecordPage : Page
     , IRecipient<AddDictDataChanged>
+    , IRecipient<DictDataChanged>
 {
     public MyWordRecordViewModel ViewModel
     {
@@ -76,7 +78,7 @@ public sealed partial class MyWordRecordPage : Page
                 break;
             case "delete":
                 var mrc = App.GetService<MyWordRecordContext>();
-                await mrc.Delete(myWord);
+                await mrc.Delete(myWord.Word);
                 await ViewModel.LoadWordData(ViewModel.CurrentPage, ViewModel.SearchText);
                 break;
         }
@@ -86,5 +88,10 @@ public sealed partial class MyWordRecordPage : Page
     {
         await ViewModel.LoadWordTotalCount();
         await ViewModel.LoadWordData(ViewModel.CurrentPage, ViewModel.SearchText, true);
+    }
+
+    public void Receive(DictDataChanged message)
+    {
+        //todo:  AddDictDataChanged
     }
 }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Timers;
 using Microsoft.EntityFrameworkCore;
 using MyEnglishWord.Core.Models;
+using Windows.UI;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -36,6 +37,15 @@ public class MyWordRecordContext : DbContext
     public Task<bool> Has(string word)
     {
         return WordRecodes.AnyAsync(x => x.Word == word);
+    }
+
+    public async Task<List<string>> Has(List<string> word)
+    {
+        var existWords = await WordRecodes
+                        .Where(x => word.Contains(x.Word))
+                        .Select(x => x.Word)
+                        .ToListAsync();
+        return existWords;
     }
 
     public async Task<(List<MyWordRecord> Records, int PageCount)> GetData(int pageIndex, int pageSize)
@@ -75,9 +85,9 @@ public class MyWordRecordContext : DbContext
         return totalCount;
     }
 
-    public async Task Delete(MyWordRecord myWord)
+    public async Task Delete(string word)
     {
-        WordRecodes.Remove(myWord);
+        await WordRecodes.Where(x => x.Word == word).ExecuteDeleteAsync();
         await SaveChangesAsync();
     }
 
