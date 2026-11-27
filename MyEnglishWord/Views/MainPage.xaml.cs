@@ -22,6 +22,7 @@ using Windows.Media.Capture;
 using Windows.Media.SpeechRecognition;
 using WinRT;
 using WordNetSqlite;
+using static CommunityToolkit.Mvvm.ComponentModel.__Internals.__TaskExtensions.TaskAwaitableWithoutEndValidation;
 using static MyEnglishWord.ViewModels.MyWordRecordViewModel;
 
 namespace MyEnglishWord.Views;
@@ -31,6 +32,7 @@ public sealed partial class MainPage : Page
     , IRecipient<ShowSpeechRecognizer>
     , IRecipient<DictDataChanged>
     , IRecipient<JumpToNewSearch>
+    , IRecipient<MyWordRecordDBChanged>
 {
     //private delegate void PageClosed();
 
@@ -293,6 +295,14 @@ public sealed partial class MainPage : Page
             var ns = App.GetService<INavigationService>();
             ns.NavigateTo(typeof(MainViewModel).FullName!, message.word);
         }
-        
+    }
+
+    public async void Receive(MyWordRecordDBChanged message)
+    {
+        if (ViewModel.CurrentWord is not null)
+        {
+            var db = App.GetService<MyWordRecordContext>();
+            ViewModel.CurrentWord.InDictionary = await db.Has(ViewModel.CurrentWord.Word);
+        }
     }
 }

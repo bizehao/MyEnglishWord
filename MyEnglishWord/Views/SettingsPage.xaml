@@ -66,6 +66,16 @@
                     SelectionChanged="VoiceComboBox_SelectionChanged" />
             </controls:SettingsCard>
 
+            <controls:SettingsCard
+                Description="设置个人单词数据库的保存和读取位置"
+                Header="个人单词本位置"
+                HeaderIcon="{ui:FontIcon Glyph=&#xF742;}">
+                <StackPanel Orientation="Horizontal">
+                    <Button Click="Import_Button_Click" Content="导入" />
+                    <Button Click="Export_Button_Click" Content="导出" />
+                </StackPanel>
+
+            </controls:SettingsCard>
 
             <TextBlock x:Uid="Settings_About" Style="{ThemeResource SubtitleTextBlockStyle}" />
 

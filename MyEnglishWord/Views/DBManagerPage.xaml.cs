@@ -16,6 +16,7 @@ namespace MyEnglishWord.Views;
 
 public sealed partial class DBManagerPage : Page
     , IRecipient<AddDictDataChanged>
+    , IRecipient<MyWordRecordDBChanged>
 {
     public DBManagerViewModel ViewModel
     {
@@ -215,5 +216,10 @@ public sealed partial class DBManagerPage : Page
         {
             await ViewModel.LoadWordData(v, ViewModel.SearchText);
         }
+    }
+
+    public async void Receive(MyWordRecordDBChanged message)
+    {
+        await ViewModel.LoadWordData(ViewModel.CurrentPage, ViewModel.SearchText);
     }
 }

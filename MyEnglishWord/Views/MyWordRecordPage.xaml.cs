@@ -14,6 +14,7 @@ namespace MyEnglishWord.Views;
 public sealed partial class MyWordRecordPage : Page
     , IRecipient<AddDictDataChanged>
     , IRecipient<DictDataChanged>
+    , IRecipient<MyWordRecordDBChanged>
 {
     public MyWordRecordViewModel ViewModel
     {
@@ -28,7 +29,7 @@ public sealed partial class MyWordRecordPage : Page
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    protected async override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         ViewModel.IsActive = true; // 激活，自动注册 Messenger IRecipient
@@ -94,5 +95,11 @@ public sealed partial class MyWordRecordPage : Page
     public void Receive(DictDataChanged message)
     {
         //todo:  AddDictDataChanged
+    }
+
+    public async void Receive(MyWordRecordDBChanged message)
+    {
+        await ViewModel.LoadWordTotalCount();
+        await ViewModel.LoadWordData(ViewModel.CurrentPage, ViewModel.SearchText, true);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using LevelDB;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Dispatching;
@@ -8,12 +9,14 @@ using MyEnglishWord.Activation;
 using MyEnglishWord.Contracts.Services;
 using MyEnglishWord.Core.Contracts.Services;
 using MyEnglishWord.Core.DataBase;
+using MyEnglishWord.Core.Models;
 using MyEnglishWord.Core.Services;
 using MyEnglishWord.Helpers;
 using MyEnglishWord.Models;
 using MyEnglishWord.Services;
 using MyEnglishWord.ViewModels;
 using MyEnglishWord.Views;
+using Windows.ApplicationModel;
 using Windows.Storage;
 using Windows.UI;
 using WordNetSqlite;
@@ -79,11 +82,6 @@ public partial class App : Application
             // Other Activation Handlers
             services.AddSingleton<PlayVoice>();
 
-            //init leveldb
-            var options = new LevelDB.Options { CreateIfMissing = true };
-            var db = new LevelDB.DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word.leveldb");
-            services.AddSingleton<LevelDB.DB>(db);
-
             services.AddDbContext<EnglishWordContext>(async options =>
             {
                 var db = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/english_words_lite.db"));
@@ -92,8 +90,18 @@ public partial class App : Application
 
             services.AddDbContext<MyWordRecordContext>(async options =>
             {
-                var db = "C:/Users/bzh/Documents/MyDB/my_word_record.db";
+                var installPath = Package.Current.InstalledPath;
+                var db = Path.Combine(installPath, "my_word_record.db");
                 options.UseSqlite($"Data Source={db}");
+            });
+
+            //初始化leveldb db  个人内容
+            services.AddSingleton<LevelDB.DB>((IServiceProvider sp) =>
+            {
+                var installPath = Package.Current.InstalledPath;
+                var options = new LevelDB.Options { CreateIfMissing = true };
+                var db = new LevelDB.DB(options, Path.Combine(installPath, "my_english_word.leveldb"));
+                return db;
             });
 
             //初始化wordnet db

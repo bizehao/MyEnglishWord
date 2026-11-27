@@ -16,6 +16,7 @@ using Windows.Media.SpeechSynthesis;
 namespace MyEnglishWord.ViewModels;
 
 public record VoiceModel(string Name, PlayVoice.VoiceType Type);
+public record MyWordRecordDBChanged(); //todo 刷新其它页面
 public partial class SettingsViewModel : ObservableRecipient
 {
     private readonly IThemeSelectorService _themeSelectorService;

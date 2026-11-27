@@ -18,11 +18,17 @@ public class MyWordRecordContext : DbContext
         get; set;
     }
 
+
     public MyWordRecordContext(DbContextOptions<MyWordRecordContext> options)
         : base(options)
     {
 
     }
+
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    optionsBuilder.UseSqlite($"Data Source={_dbPath}");
+    //}
 
     public async Task Add(string word)
     {

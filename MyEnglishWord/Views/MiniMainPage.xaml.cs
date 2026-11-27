@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Helpers;
 using MyEnglishWord.ViewModels;
 using Windows.Foundation;
@@ -30,6 +31,7 @@ namespace MyEnglishWord.Views;
 public sealed partial class MiniMainPage : Page
          , IRecipient<ShowCurrentWord>
          , IRecipient<ShowSpeechRecognizer>
+         , IRecipient<MyWordRecordDBChanged>
 {
 
     private readonly DispatcherQueueTimer _timerQueueOfInfoBar;
@@ -159,6 +161,15 @@ public sealed partial class MiniMainPage : Page
         else
         {
             ViewModel.SpeekInfoBarOpen = false;
+        }
+    }
+
+    public async void Receive(MyWordRecordDBChanged message)
+    {
+        if (ViewModel.CurrentWord is not null)
+        {
+            var db = App.GetService<MyWordRecordContext>();
+            ViewModel.CurrentWord.InDictionary = await db.Has(ViewModel.CurrentWord.Word);
         }
     }
 }

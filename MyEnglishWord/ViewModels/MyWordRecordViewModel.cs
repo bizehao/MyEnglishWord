@@ -1,6 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.UI.Xaml.Controls;
 using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Core.Models;
 using MyEnglishWord.Helpers;
@@ -14,11 +16,11 @@ public partial class MyWordRecordViewModel : ObservableRecipient
     public record DictDataChanged(string Word, bool Result);
 
     [ObservableProperty]
-    public partial List<MyWordRecord>? WordRecords
+    public partial ObservableCollection<MyWordRecord> WordRecords
     {
         get;
         set;
-    }
+    } = new();
 
     [ObservableProperty]
     public partial int PageCount
@@ -71,8 +73,6 @@ public partial class MyWordRecordViewModel : ObservableRecipient
     {
         base.OnActivated();
         await LoadWordTotalCount();
-        //await LoadDefaultData();
-
     }
     protected override void OnDeactivated()
     {
@@ -98,14 +98,16 @@ public partial class MyWordRecordViewModel : ObservableRecipient
         {
             SearchText = searchString;
             var data = await mrc.GetDataByStr(SearchText, index, PageSize);
-            WordRecords = data.Records;
+            WordRecords.Clear();
+            WordRecords.AddRange(data.Records);
             PageCount = data.PageCount;
         }
         else
         {
             SearchText = string.Empty;
             var data = await mrc.GetData(index, PageSize);
-            WordRecords = data.Records;
+            WordRecords.Clear();
+            WordRecords.AddRange(data.Records);
             PageCount = data.PageCount;
         }
 
