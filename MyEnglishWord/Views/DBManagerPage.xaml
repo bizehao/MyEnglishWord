@@ -21,6 +21,7 @@
         <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPointerOver" Color="#B0C0BDBB" />
         <SolidColorBrush x:Key="TableViewRowBackgroundPointerOver" Color="#D8E3C3" />
         <helper:BoolToIconConverter x:Key="BoolToIconConverter" />
+        <helper:ArithmeticConverter x:Key="ArithmeticConverter" />
     </Page.Resources>
 
     <Grid x:Name="ContentArea" RowSpacing="10">
@@ -49,6 +50,19 @@
             <Button Padding="5" Click="MiniWindow_Click">
                 <FontIcon Glyph="&#xE802;" />
             </Button>
+
+            <StackPanel Padding="20,0,0,0" Orientation="Horizontal">
+                <NumberBox
+                    x:Name="JumpPagerNumber"
+                    LargeChange="10"
+                    Maximum="{x:Bind ViewModel.PageCount, Mode=OneWay}"
+                    Minimum="1"
+                    SmallChange="1"
+                    SpinButtonPlacementMode="Hidden"
+                    Value="{x:Bind ViewModel.CurrentPage, Mode=OneWay, Converter={StaticResource ArithmeticConverter}, ConverterParameter='+1'}" />
+                <Button Click="JumpToPager_Click" Content="跳转" />
+            </StackPanel>
+
         </StackPanel>
 
         <Grid Grid.Row="1">

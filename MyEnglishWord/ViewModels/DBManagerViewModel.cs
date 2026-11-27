@@ -20,14 +20,14 @@ public partial class DBManagerViewModel : ObservableRecipient
     {
         get;
         set;
-    } = 0;
+    } = 1;
 
     [ObservableProperty]
     public partial int CurrentPage
     {
         get;
         set;
-    } = 0;
+    } = -1;
 
     [ObservableProperty]
     public partial string SearchText
@@ -78,14 +78,14 @@ public partial class DBManagerViewModel : ObservableRecipient
             data = await mrc.GetData(index, PageSize);
         }
 
+        PageCount = data.PageCount;
+        CurrentPage = index;
+
         var tmpWords = data.Data;
         Words = await Task.Run(() =>
         {
             return tmpWords.Select(e => WordModel.MakeWordModel(e)).ToList();
         });
-        PageCount = data.PageCount;
-
-        CurrentPage = index;
 
         var captureWords = Words;
         var ws = Words.Select(x => x.Word).ToList();

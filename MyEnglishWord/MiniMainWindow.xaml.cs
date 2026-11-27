@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -26,9 +27,31 @@ namespace MyEnglishWord;
 public sealed partial class MiniMainWindow : Window
 {
 
-
     public MiniMainWindow()
     {
         InitializeComponent();
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+    }
+
+    public void SetPage(Page page)
+    {
+        ContentFrame.Content = page;
+    }
+
+    private void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleSwitch ts && AppWindow.Presenter is OverlappedPresenter overlapped)
+        {
+            if (ts.IsOn)
+            {
+                overlapped.IsAlwaysOnTop = true;  // 置顶
+            }
+            else
+            {
+                overlapped.IsAlwaysOnTop = false; // 取消置顶
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Text;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -36,7 +37,7 @@ public sealed partial class ShellPage : Page
         AppTitleBarText.Text = "AppDisplayName".GetLocalized();
     }
 
-    private void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private async void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         TitleBarHelper.UpdateTitleBar(RequestedTheme);
 
@@ -45,6 +46,12 @@ public sealed partial class ShellPage : Page
 
         var settingItem = (NavigationViewItem)NavigationViewControl.SettingsItem;
         settingItem.Content = "设置";
+
+        var db = App.GetService<LevelDB.DB>();
+        var quickNoteContent = await Task.Run(()=>{
+            return db.Get("QuickNote");
+        });
+        MyQuickNote.Document.SetText(TextSetOptions.FormatRtf, quickNoteContent);
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -84,5 +91,14 @@ public sealed partial class ShellPage : Page
         var result = navigationService.GoBack();
 
         args.Handled = result;
+    }
+
+    private async void MyQuickNote_TextChanged(object sender, RoutedEventArgs e)
+    {
+        var db = App.GetService<LevelDB.DB>();
+        MyQuickNote.Document.GetText(TextGetOptions.FormatRtf, out var quickNoteContent);
+        await Task.Run(() => {
+            db.Put("QuickNote", quickNoteContent);
+        });
     }
 }

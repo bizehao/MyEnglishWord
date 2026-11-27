@@ -1,5 +1,4 @@
-﻿using LevelDB;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Dispatching;
@@ -79,9 +78,11 @@ public partial class App : Application
 
             // Other Activation Handlers
             services.AddSingleton<PlayVoice>();
-            //var options = new Options { CreateIfMissing = true };
-            //var db = new DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word.db");
-            //services.AddSingleton<DB>(db);
+
+            //init leveldb
+            var options = new LevelDB.Options { CreateIfMissing = true };
+            var db = new LevelDB.DB(options, @"C:\Users\bzh\Documents\MyDB\my_english_word.leveldb");
+            services.AddSingleton<LevelDB.DB>(db);
 
             services.AddDbContext<EnglishWordContext>(async options =>
             {
@@ -152,6 +153,5 @@ public partial class App : Application
         await App.GetService<WordNetDatabase>().InitializeAsync();
 
         base.OnLaunched(args);
-
     }
 }

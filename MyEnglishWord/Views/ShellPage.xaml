@@ -16,17 +16,57 @@
             VerticalAlignment="Top"
             Canvas.ZIndex="1"
             IsHitTestVisible="True">
-            <Image
-                Width="16"
-                Height="16"
-                HorizontalAlignment="Left"
-                Source="/Assets/WindowIcon.ico" />
-            <TextBlock
-                x:Name="AppTitleBarText"
-                Margin="28,0,0,0"
-                VerticalAlignment="Center"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="NoWrap" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="150" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Grid.Column="0"
+                Orientation="Horizontal"
+                Spacing="10">
+                <Image
+                    Width="16"
+                    Height="16"
+                    HorizontalAlignment="Left"
+                    Source="/Assets/WindowIcon.ico" />
+                <TextBlock
+                    x:Name="AppTitleBarText"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="NoWrap" />
+            </StackPanel>
+
+            <Button Grid.Column="1" HorizontalAlignment="Right">
+                <FontIcon Glyph="&#xE70B;" />
+
+                <Button.Flyout>
+                    <Flyout>
+                        <Flyout.FlyoutPresenterStyle>
+                            <Style TargetType="FlyoutPresenter">
+                                <Setter Property="Padding" Value="4" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="CornerRadius" Value="4" />
+                            </Style>
+                        </Flyout.FlyoutPresenterStyle>
+                        <StackPanel>
+                            <StackPanel.Resources>
+                                <SolidColorBrush x:Key="TextControlBackground" Color="#FFF7D1" />
+                                <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FFF7D1" />
+                                <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FFF7D1" />
+                                <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FFF7D1" />
+                            </StackPanel.Resources>
+                            <RichEditBox
+                                x:Name="MyQuickNote"
+                                Width="300"
+                                Height="500"
+                                TextChanged="MyQuickNote_TextChanged" />
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+
+            </Button>
         </Grid>
         <NavigationView
             x:Name="NavigationViewControl"

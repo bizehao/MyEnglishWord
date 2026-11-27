@@ -1,7 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Core.Models;
+using MyEnglishWord.Helpers;
+using MyEnglishWord.Models;
 
 namespace MyEnglishWord.ViewModels;
 
@@ -43,7 +46,14 @@ public partial class MyWordRecordViewModel : ObservableRecipient
         get;
         set;
     } = 0;
-    
+
+    [ObservableProperty]
+    public partial string WordTranslate
+    {
+        get;
+        set;
+    } = string.Empty;
+
 
     public int PageSize
     {
@@ -101,4 +111,25 @@ public partial class MyWordRecordViewModel : ObservableRecipient
 
         CurrentPage = index;
     }
+
+    [RelayCommand]
+    private async Task HandlePlayWord(string word)
+    {
+        var pv = App.GetService<PlayVoice>();
+        await pv.Play(word);
+    }
+
+    [RelayCommand]
+    private async Task HandleWordTranslate(MyWordRecord wordRecord)
+    {
+        var dbService = App.GetService<EnglishWordContext>();
+        var result = await dbService.QueryWordAsync(wordRecord.Word);
+
+        if (result is not null)
+        {
+            WordTranslate = result.Translation ?? string.Empty;
+        }
+    }
+
+    
 }

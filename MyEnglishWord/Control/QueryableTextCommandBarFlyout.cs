@@ -1,13 +1,18 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Common;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using MyEnglishWord.Contracts.Services;
+using MyEnglishWord.Helpers;
+using MyEnglishWord.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace MyEnglishWord.Control;
@@ -67,7 +72,7 @@ public class QueryableTextCommandBarFlyout : Microsoft.UI.Xaml.Controls.CommandB
             Command = QueryCommand,
             IsCompact = true
         };
-        
+
         SpeechButton = new AppBarButton()
         {
             Icon = new SymbolIcon(Symbol.Volume),
@@ -109,43 +114,51 @@ public class QueryableTextCommandBarFlyout : Microsoft.UI.Xaml.Controls.CommandB
 
     private void Query()
     {
-        //if(Context != null)
-        //{
-        //    string selectedText = null;
-        //    if(Target is TextBlock)
-        //    {
-        //        selectedText = (Target as TextBlock).SelectedText;
-        //    }
-        //    else if(Target is RichTextBlock)
-        //    {
-        //        selectedText = (Target as RichTextBlock).SelectedText;
-        //    }
-        //    Context.IssueSearch(selectedText);
-        //}
-        //Hide();
+        string selectedText = string.Empty;
+        if (Target is TextBlock e1)
+        {
+            selectedText = e1.SelectedText;
+        }
+        else if (Target is RichTextBlock e2)
+        {
+            selectedText = e2.SelectedText;
+        }
+
+        selectedText = selectedText.Trim();
+        if (selectedText != string.Empty)
+        {
+            WeakReferenceMessenger.Default.Send(new JumpToNewSearch(selectedText));
+        }
+        
+        Hide();
     }
 
     private async Task SpeechAsync()
     {
-        //if(Context != null)
-        //{
-        //    string selectedText = null;
-        //    if (Target is TextBlock)
-        //    {
-        //        selectedText = (Target as TextBlock).SelectedText;
-        //    }
-        //    else if (Target is RichTextBlock)
-        //    {
-        //        selectedText = (Target as RichTextBlock).SelectedText;
-        //    }
-        //    await Context.IssueSpeechAsync(selectedText);
-        //}
-        //Hide();
+        string selectedText = string.Empty;
+        if (Target is TextBlock e1)
+        {
+            selectedText = e1.SelectedText;
+        }
+        else if (Target is RichTextBlock e2)
+        {
+            selectedText = e2.SelectedText;
+        }
+
+        selectedText = selectedText.Trim();
+        if (selectedText != string.Empty)
+        {
+            var pv = App.GetService<PlayVoice>();
+            await pv.Play(selectedText);
+        }
+
+        Hide();
+
     }
 
     private void Copy()
     {
-        string selectedText = null;
+        string selectedText = string.Empty;
         if (Target is TextBlock ele1)
         {
             selectedText = ele1.SelectedText;
@@ -154,7 +167,9 @@ public class QueryableTextCommandBarFlyout : Microsoft.UI.Xaml.Controls.CommandB
         {
             selectedText = ele2.SelectedText;
         }
-        if (!string.IsNullOrEmpty(selectedText))
+
+        selectedText = selectedText.Trim();
+        if (selectedText != string.Empty)
         {
             DataPackage dataPackage = new DataPackage();
             dataPackage.RequestedOperation = DataPackageOperation.Copy;

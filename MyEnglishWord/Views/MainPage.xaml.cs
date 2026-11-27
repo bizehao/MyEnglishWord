@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using MyEnglishWord.Contracts.Services;
 using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Helpers;
 using MyEnglishWord.Models;
@@ -29,6 +30,7 @@ public sealed partial class MainPage : Page
     , IRecipient<ShowWordDetailDialog>
     , IRecipient<ShowSpeechRecognizer>
     , IRecipient<DictDataChanged>
+    , IRecipient<JumpToNewSearch>
 {
     //private delegate void PageClosed();
 
@@ -277,5 +279,20 @@ public sealed partial class MainPage : Page
         {
             ViewModel.CurrentWord.InDictionary = message.Result;
         }
+    }
+
+    public void Receive(JumpToNewSearch message)
+    {
+        if (ViewModel.IsActive)
+        {
+            SearchBox.Text = message.word;
+            AutoSuggestBox_QuerySubmitted(SearchBox, new AutoSuggestBoxQuerySubmittedEventArgs());
+        }
+        else
+        {
+            var ns = App.GetService<INavigationService>();
+            ns.NavigateTo(typeof(MainViewModel).FullName!, message.word);
+        }
+        
     }
 }

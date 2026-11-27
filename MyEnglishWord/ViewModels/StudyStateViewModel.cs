@@ -14,6 +14,8 @@ public partial class StudyStateViewModel : ObservableRecipient
 {
     public record class PieChartData(List<WordCountData> Data, int TotalDays);
 
+    public record class ActiveChartData(List<WordCountData> FullList, List<WordCountData> PrefixSum);
+
     [ObservableProperty]
     public partial List<ISeries>? Active_Series
     {
@@ -67,6 +69,11 @@ public partial class StudyStateViewModel : ObservableRecipient
         set;
     }
 
+    public ActiveChartData? CurAvtiveChartData
+    {
+        get;
+        set;
+    }
 
     public StudyStateViewModel()
     {

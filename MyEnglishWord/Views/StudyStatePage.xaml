@@ -61,33 +61,50 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel
+                            Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="10">
+                            <DatePicker
+                                x:Name="Active_StartDatePicker"
+                                Header="开始日期"
+                                Language="zh-CN" />
+                            <DatePicker
+                                x:Name="Active_EndDatePicker"
+                                Header="结束日期"
+                                Language="zh-CN" />
+                            <ComboBox
+                                x:Name="Active_ChooseWay"
+                                Grid.Column="1"
+                                VerticalAlignment="Bottom"
+                                SelectedIndex="{x:Bind ViewModel.Active_ShowWayIndex, Mode=TwoWay}">
+                                <x:String>日</x:String>
+                                <x:String>月</x:String>
+                                <x:String>年</x:String>
+                            </ComboBox>
+                            <Button
+                                VerticalAlignment="Bottom"
+                                Click="Active_ChartButton_Click"
+                                Content="查询" />
+                        </StackPanel>
 
-                    <StackPanel
-                        Grid.Row="0"
-                        Orientation="Horizontal"
-                        Spacing="10">
-                        <DatePicker
-                            x:Name="Active_StartDatePicker"
-                            Header="开始日期"
-                            Language="zh-CN" />
-                        <DatePicker
-                            x:Name="Active_EndDatePicker"
-                            Header="结束日期"
-                            Language="zh-CN" />
-                        <ComboBox
-                            x:Name="Active_ChooseWay"
+                        <RadioButtons
+                            x:Name="RadioButtons_ActiveChartType"
                             Grid.Column="1"
-                            VerticalAlignment="Bottom"
-                            SelectedIndex="{x:Bind ViewModel.Active_ShowWayIndex, Mode=TwoWay}">
-                            <x:String>日</x:String>
-                            <x:String>月</x:String>
-                            <x:String>年</x:String>
-                        </ComboBox>
-                        <Button
-                            VerticalAlignment="Bottom"
-                            Click="Active_ChartButton_Click"
-                            Content="查询" />
-                    </StackPanel>
+                            HorizontalAlignment="Right"
+                            Header="活动图:"
+                            MaxColumns="2"
+                            SelectedIndex="0">
+                            <RadioButton Checked="RadioButton_WordPerDay_Checked" Content="每日单词图" />
+                            <RadioButton Checked="RadioButton_WordTotal_Checked" Content="单词总量图" />
+                        </RadioButtons>
+                    </Grid>
+
 
                     <TextBlock
                         x:Name="Active_ChartTitle"
@@ -235,7 +252,6 @@
                                                     </TeachingTip.IconSource>
                                                 </TeachingTip>
                                             </Grid>
-
                                         </Flyout>
                                     </Button.Flyout>
                                 </Button>

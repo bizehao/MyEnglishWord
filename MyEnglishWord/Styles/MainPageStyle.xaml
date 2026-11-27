@@ -135,6 +135,7 @@
                     VerticalAlignment="Bottom"
                     FontSize="42"
                     FontWeight="SemiBold"
+                    IsTextSelectionEnabled="True"
                     Text="{x:Bind Word, Mode=OneWay}" />
                 <TextBlock
                     VerticalAlignment="Center"

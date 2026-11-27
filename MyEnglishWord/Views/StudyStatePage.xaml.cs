@@ -17,6 +17,7 @@ using Microsoft.UI.Xaml.Data;
 using MyEnglishWord.Core.DataBase;
 using MyEnglishWord.Core.Helpers;
 using MyEnglishWord.Core.Models;
+using MyEnglishWord.Helpers;
 using MyEnglishWord.Models;
 using MyEnglishWord.ViewModels;
 using SkiaSharp;
@@ -27,7 +28,7 @@ using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
 using WinRT;
-using MyEnglishWord.Helpers;
+using static MyEnglishWord.ViewModels.StudyStateViewModel;
 
 namespace MyEnglishWord.Views;
 
@@ -124,17 +125,9 @@ public sealed partial class StudyStatePage : Page
             _ => throw new NotImplementedException(),
         };
 
-        Func<DateTime, string> formatFun = ViewModel.Active_ShowWayIndex switch
-        {
-            0 => dt => dt.ToString("yy-MM-dd"), // 日
-            1 => dt => dt.ToString("yy-MM"), // 月
-            2 => dt => dt.ToString("yy"), // 年
-            _ => throw new NotImplementedException(),
-        };
-
         var dataPoints = await App.GetService<MyWordRecordContext>().GetWordCount(startDate, endDate, type);
 
-        (List<WordCountData> fullList, List<WordCountData> prefixSum) = await Task.Run(() =>
+        ViewModel.CurAvtiveChartData = await Task.Run(() =>
         {
             Func<DateTime, int> makeKey = type switch
             {
@@ -170,15 +163,24 @@ public sealed partial class StudyStatePage : Page
             var sum = 0;
             var prefixSum = fullList.Select(x => new WordCountData(x.Time, sum += x.Count)).ToList();
 
-            return (fullList, prefixSum);
+            return new ActiveChartData(fullList, prefixSum);
         });
+    }
 
-        // 柱状图，X 用 DateTime（LiveCharts 内部把日期转成 double 时间戳）
-        ViewModel.Active_Series =
-        [
-            new ColumnSeries<WordCountData>
+    private void ShowActiveChart(int type)
+    {
+        if (ViewModel.CurAvtiveChartData is null)
+        {
+            return;
+        }
+        if (type == 0) //每日单词记忆图
+        {
+            // 柱状图，X 用 DateTime（LiveCharts 内部把日期转成 double 时间戳）
+            ViewModel.Active_Series =
+            [
+                new ColumnSeries<WordCountData>
             {
-                Values = fullList,
+                Values = ViewModel.CurAvtiveChartData.FullList,
                 // 映射：X取日期，Y取数量
                 Mapping = (item, point) =>
                 {
@@ -186,10 +188,17 @@ public sealed partial class StudyStatePage : Page
                 },
                 Fill = new SolidColorPaint(SKColors.SteelBlue),
                 Name = "单词量",
-            },
+            }
+            ];
+        }
+        else if (type == 1) //单词总量增长图
+        {
+            // 柱状图，X 用 DateTime（LiveCharts 内部把日期转成 double 时间戳）
+            ViewModel.Active_Series =
+            [
             new LineSeries<WordCountData>
             {
-                Values = prefixSum,
+                Values = ViewModel.CurAvtiveChartData.PrefixSum,
                 // 映射：X取日期，Y取数量
                 Mapping = (item, point) =>
                 {
@@ -200,7 +209,20 @@ public sealed partial class StudyStatePage : Page
                 LineSmoothness = 0,
                 Name = "单词总量",
             }
-        ];
+            ];
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+
+        Func<DateTime, string> formatFun = ViewModel.Active_ShowWayIndex switch
+        {
+            0 => dt => dt.ToString("yy-MM-dd"), // 日
+            1 => dt => dt.ToString("yy-MM"), // 月
+            2 => dt => dt.ToString("yy"), // 年
+            _ => throw new NotImplementedException(),
+        };
 
         // X轴：日期格式化
         ViewModel.Active_XAxes =
@@ -210,13 +232,13 @@ public sealed partial class StudyStatePage : Page
                 Labeler = value =>
                 {
                     var v = (int)Math.Round(value);
-                    if(v < 0 || v >= fullList.Count)
+                    if(v < 0 || v >= ViewModel.CurAvtiveChartData.FullList.Count)
                     {
                         return string.Empty;
                     }
                     else
                     {
-                        return formatFun(fullList[v].Time); // 使用选定的格式化函数
+                        return formatFun(ViewModel.CurAvtiveChartData.FullList[v].Time); // 使用选定的格式化函数
                     }
                 },
                 UnitWidth = 1,
@@ -242,6 +264,7 @@ public sealed partial class StudyStatePage : Page
     private async void Active_ChartButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         await HandleActiveChart();
+        ShowActiveChart(RadioButtons_ActiveChartType.SelectedIndex);
     }
 
     private async Task HandlePieChart()
@@ -449,6 +472,7 @@ public sealed partial class StudyStatePage : Page
         Active_EndDatePicker.SelectedDate = edate;
 
         await HandleActiveChart();
+        ShowActiveChart(RadioButtons_ActiveChartType.SelectedIndex);
     }
 
     private async void Increase_loaded(object sender, RoutedEventArgs e)
@@ -459,5 +483,15 @@ public sealed partial class StudyStatePage : Page
         Increase_EndDatePicker.SelectedDate = edate;
 
         await HandlePieChart();
+    }
+
+    private void RadioButton_WordPerDay_Checked(object sender, RoutedEventArgs e)
+    {
+        ShowActiveChart(0);
+    }
+
+    private void RadioButton_WordTotal_Checked(object sender, RoutedEventArgs e)
+    {
+        ShowActiveChart(1);
     }
 }

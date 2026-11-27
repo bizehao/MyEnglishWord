@@ -23,6 +23,7 @@ public sealed partial class MyWordRecordPage : Page
     public MyWordRecordPage()
     {
         ViewModel = App.GetService<MyWordRecordViewModel>();
+        DataContext = ViewModel;
         InitializeComponent();
         WeakReferenceMessenger.Default.RegisterAll(this);
     }

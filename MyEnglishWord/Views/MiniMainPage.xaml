@@ -20,7 +20,7 @@
 
     <Grid x:Name="ContentArea">
 
-        <ScrollView>
+        <ScrollView x:Name="WordScrollView">
             <ContentPresenter Content="{x:Bind ViewModel.CurrentWord, Mode=OneWay}" ContentTemplate="{StaticResource WordDetailTemplate}" />
         </ScrollView>
 

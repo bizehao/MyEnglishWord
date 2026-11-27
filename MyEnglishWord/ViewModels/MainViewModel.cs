@@ -26,10 +26,14 @@ using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace MyEnglishWord.ViewModels;
 
+//显示单词细节
 public record ShowWordDetailDialog(WordModel word);
+//展示录音对比
 public record ShowSpeechRecognizer(WordModel word);
-
+//添加单词记录
 public record AddDictDataChanged(string word);
+//跳转到某个搜索
+public record JumpToNewSearch(string word);
 
 public partial class MainViewModel : ObservableRecipient
 {

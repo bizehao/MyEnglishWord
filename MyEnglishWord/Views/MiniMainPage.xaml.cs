@@ -50,6 +50,7 @@ public sealed partial class MiniMainPage : Page
 
     public async void Receive(ShowCurrentWord message)
     {
+        WordScrollView.ScrollTo(0, 0);
         ViewModel.CurrentWord = message.Word;
         await MiniMainViewModel.AddExtentFromWordNet(ViewModel.CurrentWord);
     }

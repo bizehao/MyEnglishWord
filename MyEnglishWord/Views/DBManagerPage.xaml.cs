@@ -22,7 +22,7 @@ public sealed partial class DBManagerPage : Page
         get;
     }
 
-    private Window? miniWindow;
+    private MiniMainWindow? miniWindow;
 
     public DBManagerPage()
     {
@@ -66,9 +66,7 @@ public sealed partial class DBManagerPage : Page
             return;
         }
 
-        var ns = App.GetService<INavigationService>();
-        ns.NavigateTo(typeof(MainViewModel).FullName!, word.Word);
-
+        WeakReferenceMessenger.Default.Send(new JumpToNewSearch(word.Word));
     }
 
     private async void ToUpdate_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
@@ -84,7 +82,10 @@ public sealed partial class DBManagerPage : Page
 
     private async void Pager_SelectedIndexChanged(PagerControl sender, PagerControlSelectedIndexChangedEventArgs args)
     {
-        await ViewModel.LoadWordData(sender.SelectedPageIndex, ViewModel.SearchText);
+        if (sender.SelectedPageIndex != ViewModel.CurrentPage)
+        {
+            await ViewModel.LoadWordData(sender.SelectedPageIndex, ViewModel.SearchText);
+        }
     }
 
     private async void SearchMyWord_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -176,10 +177,9 @@ public sealed partial class DBManagerPage : Page
             {
                 page.ViewModel.CurrentWord = wordModel;
             }
-            miniWindow = new MiniMainWindow()
-            {
-                Content = page
-            };
+            miniWindow = new MiniMainWindow();
+            miniWindow.SetPage(page);
+
             WindowHelper.TrackWindow(miniWindow);
 
             miniWindow.Closed += (sender, args) =>
@@ -206,5 +206,14 @@ public sealed partial class DBManagerPage : Page
             return;
         }
         WeakReferenceMessenger.Default.Send(new ShowCurrentWord(wordModel));
+    }
+
+    private async void JumpToPager_Click(object sender, RoutedEventArgs e)
+    {
+        var v = (int)JumpPagerNumber.Value - 1;
+        if (v != ViewModel.CurrentPage)
+        {
+            await ViewModel.LoadWordData(v, ViewModel.SearchText);
+        }
     }
 }

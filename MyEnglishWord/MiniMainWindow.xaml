@@ -14,6 +14,29 @@
     </Window.SystemBackdrop>
 
     <Grid>
-        <Button Content="111" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TitleBar x:Name="AppTitleBar" Title="English">
+            <TitleBar.Resources>
+                <x:String x:Key="TitleBarContentHorizontalAlignment">Stretch</x:String>
+            </TitleBar.Resources>
+            <TitleBar.IconSource>
+                <FontIconSource Glyph="&#xE700;" />
+            </TitleBar.IconSource>
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <ToggleSwitch
+                    MinWidth="80"
+                    MaxWidth="80"
+                    IsOn="True"
+                    OffContent="取消置顶"
+                    OnContent="置顶"
+                    Toggled="ToggleSwitch_Toggled" />
+            </StackPanel>
+        </TitleBar>
+
+        <Frame x:Name="ContentFrame" Grid.Row="1" />
     </Grid>
 </Window>
